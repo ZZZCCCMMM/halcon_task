@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>clear_all_shape_models ()</l>
+<l>ModelIDs:=[]</l>
+<l>ImageFiles:=[]</l>
+<l>chars:=['0','1','2','3','4','5','6','7','8','9','B'':']</l>
+<l>ImageFiles[0] := 'D:/desk/相机标定/任务/易拉罐/挑的素材/0.png'</l>
+<l>ImageFiles[1] := 'D:/desk/相机标定/任务/易拉罐/挑的素材/1.png'</l>
+<l>ImageFiles[2] := 'D:/desk/相机标定/任务/易拉罐/挑的素材/2.png'</l>
+<l>ImageFiles[3] := 'D:/desk/相机标定/任务/易拉罐/挑的素材/3.png'</l>
+<l>ImageFiles[4] := 'D:/desk/相机标定/任务/易拉罐/挑的素材/4.png'</l>
+<l>ImageFiles[5] := 'D:/desk/相机标定/任务/易拉罐/挑的素材/5.png'</l>
+<l>ImageFiles[6] := 'D:/desk/相机标定/任务/易拉罐/挑的素材/6.png'</l>
+<l>ImageFiles[7] := 'D:/desk/相机标定/任务/易拉罐/挑的素材/7.png'</l>
+<l>ImageFiles[8] := 'D:/desk/相机标定/任务/易拉罐/挑的素材/8.png'</l>
+<l>ImageFiles[9] := 'D:/desk/相机标定/任务/易拉罐/挑的素材/9.png'</l>
+<l>ImageFiles[10] := 'D:/desk/相机标定/任务/易拉罐/挑的素材/B.png'</l>
+<l>ImageFiles[11] := 'D:/desk/相机标定/任务/易拉罐/挑的素材/mh.png'</l>
+<c></c>
+<l>for Index := 0 to |ImageFiles|-1 by 1</l>
+<l>    read_image (Image, ImageFiles[Index])</l>
+<l>    create_shape_model (Image, 'auto', 0, 0, 'auto', 'auto', 'use_polarity', 30, 10, ModelID)</l>
+<l>    ModelIDs:=[ModelIDs,ModelID]</l>
+<l>    *get_shape_model_contours (ModelContours, ModelID, 3)</l>
+<l>endfor</l>
+<c></c>
+<l>for id :=1 to 8 by 1</l>
+<l>read_image (Image,'D:/desk/相机标定/任务/易拉罐/素材/'+id+'.png')</l>
+<l>    rgb1_to_gray (Image, Image)</l>
+<l>    get_image_size (Image, Width, Height)</l>
+<l>    threshold (Image, Region, 0, 230)</l>
+<l>    connection (Region, ConnectedRegions)</l>
+<l>    select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 0, 777.91)</l>
+<l>    union1 (SelectedRegions, RegionUnion)</l>
+<l>    shape_trans (RegionUnion, RegionTrans, 'rectangle2')</l>
+<l>    smallest_rectangle2 (RegionTrans, T_Row, T_Column, T_Phi, T_Length1, T_Length2)</l>
+<l>    hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>    hom_mat2d_rotate (HomMat2DIdentity, -T_Phi, T_Column, T_Row, HomMat2DRotate)</l>
+<l>    affine_trans_image (Image, ImageAffineTrans, HomMat2DRotate, 'constant', 'false')</l>
+<l>    affine_trans_region (RegionUnion, RegionAffineTrans_1, HomMat2DRotate, 'constant')</l>
+<c>    </c>
+<l>    smallest_rectangle2 (RegionAffineTrans_1, T1_Row, T1_Column, T1_Phi, T1_Length1, T1_Length2)</l>
+<l>    gen_rectangle2 (Rectangle1, T1_Row-T1_Length2/2, T1_Column, T1_Phi, T1_Length1, T1_Length2/2)</l>
+<l>    gen_rectangle2 (Rectangle2, T1_Row+T1_Length2/2, T1_Column, T1_Phi, T1_Length1, T1_Length2/2)</l>
+<l>    intersection (RegionAffineTrans_1, Rectangle1, ROI1)</l>
+<l>    intersection (RegionAffineTrans_1, Rectangle2, ROI2)</l>
+<l>    concat_obj (ROI1, ROI2, ObjectsConcat)</l>
+<c>    </c>
+<c>    </c>
+<l>    if(id=1)</l>
+<l>        dev_clear_window ()</l>
+<l>        dev_display (ImageAffineTrans)</l>
+<l>        rho:=T1_Length1+10</l>
+<l>        delta:=6</l>
+<l>        areas:=[]</l>
+<l>        phis:=[]</l>
+<l>        gen_cross_contour_xld (Cross, T1_Row, T1_Column+delta, 6, 20)</l>
+<l>        for phi_k:=0 to rad(180-1) by 0.005</l>
+<l>           gen_region_line(RegionLines, T1_Row+sin(phi_k)*rho, T1_Column+delta-cos(phi_k)*rho, T1_Row-sin(phi_k)*rho, T1_Column+delta+cos(phi_k)*rho)</l>
+<l>            intersection (RegionLines, RegionAffineTrans_1, RegionIntersection)</l>
+<l>            area_center (RegionIntersection, Area, NULL, NULL)</l>
+<l>            areas:=[areas,Area]</l>
+<l>            phis:=[phis,phi_k]</l>
+<l>        endfor</l>
+<l>        tuple_find(areas,0,Indices)</l>
+<l>        phi_select:=(phis[Indices[int(|Indices|/2)]])</l>
+<c>        </c>
+<l>    endif</l>
+<c>    </c>
+<l>    hom_mat2d_rotate (HomMat2DIdentity, rad(90)-phi_select+0.05, T1_Column, T1_Row, HomMat2DRotate)</l>
+<l>    affine_trans_image (ImageAffineTrans, ImageAffineTrans_2, HomMat2DRotate, 'constant', 'false')</l>
+<l>    affine_trans_region (ObjectsConcat, RegionAffineTrans_2, HomMat2DRotate, 'constant')</l>
+<c>    </c>
+<l>    dev_clear_window ()</l>
+<l>    dev_display (ImageAffineTrans_2)</l>
+<c>    </c>
+<l>    union1 (RegionAffineTrans_2, RegionUnion1)</l>
+<l>    closing_circle (RegionUnion1, RegionUnion1, 4)</l>
+<l>    region_to_bin (RegionUnion1, BinImage, 255, 0, Width, Height)</l>
+<c>    </c>
+<l>    find_shape_models(BinImage, ModelIDs, -1.57, 3.14, 0.1, 18, 0.3, 'least_squares', 0, 0.1, Row, Column, Angle, Score,Model)</l>
+<l>    dev_clear_window ()</l>
+<l>    dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
+<l>    dev_display (Image)</l>
+<c>    </c>
+<l>    disp_message (WindowHandle,chars[Model], 'Image', Row+100, Column, 'black', 'true')</l>
+<l>    stop ()</l>
+<c></c>
+<l>endfor</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

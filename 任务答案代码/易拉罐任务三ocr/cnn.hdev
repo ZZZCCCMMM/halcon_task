@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>for id :=1 to 8 by 1</l>
+<l>    read_image (Image,'C:/Users/FBIzhu/Desktop/任务/易拉罐/素材/'+id+'.png')</l>
+<l>    rgb1_to_gray (Image, Image)</l>
+<l>    get_image_size (Image, Width, Height)</l>
+<l>    threshold (Image, Region, 0, 230)</l>
+<l>    connection (Region, ConnectedRegions)</l>
+<l>    select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 0, 777.91)</l>
+<l>    union1 (SelectedRegions, RegionUnion)</l>
+<l>    shape_trans (RegionUnion, RegionTrans, 'rectangle2')</l>
+<l>    smallest_rectangle2 (RegionTrans, T_Row, T_Column, T_Phi, T_Length1, T_Length2)</l>
+<l>    hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>    hom_mat2d_rotate (HomMat2DIdentity, -T_Phi, T_Column, T_Row, HomMat2DRotate)</l>
+<l>    affine_trans_image (Image, ImageAffineTrans, HomMat2DRotate, 'constant', 'false')</l>
+<l>    affine_trans_region (RegionUnion, RegionAffineTrans_1, HomMat2DRotate, 'constant')</l>
+<c>    </c>
+<l>    smallest_rectangle2 (RegionAffineTrans_1, T1_Row, T1_Column, T1_Phi, T1_Length1, T1_Length2)</l>
+<l>    gen_rectangle2 (Rectangle1, T1_Row-T1_Length2/2, T1_Column, T1_Phi, T1_Length1, T1_Length2/2)</l>
+<l>    gen_rectangle2 (Rectangle2, T1_Row+T1_Length2/2, T1_Column, T1_Phi, T1_Length1, T1_Length2/2)</l>
+<l>    intersection (RegionAffineTrans_1, Rectangle1, ROI1)</l>
+<l>    intersection (RegionAffineTrans_1, Rectangle2, ROI2)</l>
+<l>    concat_obj (ROI1, ROI2, ObjectsConcat)</l>
+<c>    </c>
+<c>    </c>
+<l>    if(id=1)</l>
+<l>        dev_clear_window ()</l>
+<l>        dev_display (ImageAffineTrans)</l>
+<l>        rho:=T1_Length1+10</l>
+<l>        delta:=6</l>
+<l>        areas:=[]</l>
+<l>        phis:=[]</l>
+<l>        gen_cross_contour_xld (Cross, T1_Row, T1_Column+delta, 6, 20)</l>
+<l>        for phi_k:=0 to rad(180-1) by 0.005</l>
+<l>           gen_region_line(RegionLines, T1_Row+sin(phi_k)*rho, T1_Column+delta-cos(phi_k)*rho, T1_Row-sin(phi_k)*rho, T1_Column+delta+cos(phi_k)*rho)</l>
+<l>            intersection (RegionLines, RegionAffineTrans_1, RegionIntersection)</l>
+<l>            area_center (RegionIntersection, Area, NULL, NULL)</l>
+<l>            areas:=[areas,Area]</l>
+<l>            phis:=[phis,phi_k]</l>
+<l>        endfor</l>
+<l>        tuple_find(areas,0,Indices)</l>
+<l>        phi_select:=(phis[Indices[int(|Indices|/2)]])</l>
+<c>        </c>
+<l>    endif</l>
+<c>    </c>
+<l>    hom_mat2d_rotate (HomMat2DIdentity, rad(90)-phi_select+0.05, T1_Column, T1_Row, HomMat2DRotate)</l>
+<l>    affine_trans_image (ImageAffineTrans, ImageAffineTrans_2, HomMat2DRotate, 'constant', 'false')</l>
+<l>    affine_trans_region (ObjectsConcat, ImageAffineTrans_2, HomMat2DRotate, 'constant')</l>
+<c>    </c>
+<l>    dev_close_window ()</l>
+<l>    dev_display (ImageAffineTrans_2)</l>
+<c>    </c>
+<l>    union1 (ImageAffineTrans_2, RegionUnion1)</l>
+<l>    closing_circle (RegionUnion1, RegionUnion1, 4)</l>
+<l>    region_to_bin (RegionUnion1, BinImage, 255, 0, Width, Height)</l>
+<c>    </c>
+<c>    </c>
+<l>    smallest_rectangle1 (RegionUnion1, RU_Row1, RU_Column1, RU_Row2, RU_Column2)</l>
+<l>    gen_rectangle1 (Rect3, RU_Row1, RU_Column1, RU_Row2, RU_Column2)</l>
+<l>    len:=RU_Column2-RU_Column1+1</l>
+<l>    n:=10</l>
+<l>    w:=len/n+1</l>
+<c>    *初始化数组，指定开始值，终止值，累加步长</c>
+<l>    tuple_gen_sequence (RU_Column1, RU_Column2, w, T_start)</l>
+<l>    T_start:=T_start[0:n-1]</l>
+<l>    T_end:=T_start+w</l>
+<c>    *产生一个指定长度和初始化值的数组</c>
+<l>    tuple_gen_const (n, 0, T_Zeros)</l>
+<l>    tuple_gen_const (n, Height-1, hieghts)</l>
+<l>    gen_rectangle1 (Rectangles, T_Zeros, T_start, hieghts, T_end)</l>
+<l>    gen_empty_obj (chars_Regs)</l>
+<c>    </c>
+<l>        for i :=1 to 2 by 1</l>
+<l>        select_obj (ImageAffineTrans_2, ImageAffineTrans_2_selected,i)</l>
+<l>        intersection (Rectangles, ImageAffineTrans_2_selected, chars_Reg)</l>
+<l>        concat_obj (chars_Regs,chars_Reg,chars_Regs)</l>
+<l>    endfor</l>
+<c>    </c>
+<c>    </c>
+<l>    TrainFile := 'train_ocr'</l>
+<l>    Classes:=['2','0','1','8','0','8','2','7','B','0','6',':','2','5','0','2','6','0']</l>
+<l>    count_obj (chars_Regs, Number)</l>
+<l>*    for e := 1 to Number by 1</l>
+<l> *       select_obj (chars_Regs, ObjectSelected, e)</l>
+<c>        </c>
+<l>  *  endfor</l>
+<c>   </c>
+<l>    select_shape (chars_Regs, SelectedRegions1, 'area', 'and', 50, 737.96)</l>
+<l>sort_region (SelectedRegions1, SortedRegions, 'character', 'true', 'row')</l>
+<c></c>
+<l>read_ocr_class_cnn ('Universal_Rej.occ', OCRHandle)</l>
+<c></c>
+<l>do_ocr_multi_class_cnn (SortedRegions, Image, OCRHandle, Class, Confidence)</l>
+<l>area_center (SelectedRegions1, Area, Row, Column)</l>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
+<l>dev_display (Image)</l>
+<l>disp_message (WindowHandle, Class, 'window',Row+70, Column, 'black', 'true')</l>
+<l>delete_file ('train_ocr')</l>
+<l>    stop ()</l>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

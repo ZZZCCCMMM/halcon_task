@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>chars_tuple:=['Circle','Triangle','Quadrilateral','pentagon']</l>
+<l>for Index := 1 to 3 by 1</l>
+<c></c>
+<l>read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/任务4/train/'+Index+'.png')</l>
+<l>dev_close_window ()</l>
+<l>dev_update_off ()</l>
+<c></c>
+<l>dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle)</l>
+<l>dev_set_draw ('margin')</l>
+<l>dev_set_line_width (2)</l>
+<l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<l>dev_set_colored (12)</l>
+<l>query_feature_group_names (AvailableGroupNames)</l>
+<l>query_feature_names_by_group (AvailableGroupNames, AvailableFeatureNames, AvailableCorrespondingGroups)</l>
+<l>FeatureGroups := ['num_sides','roundness','rectangularity']</l>
+<l>*FeatureGroups := ['circularity']</l>
+<l>*FeatureGroups := ['roundness']</l>
+<l>*FeatureGroups := ['rectangularity']</l>
+<l>*FeatureGroups := ['num_sides']</l>
+<l>get_feature_names (FeatureGroups, FeatureNames)</l>
+<l>get_feature_lengths (FeatureNames, FeatureLengths)</l>
+<l>create_class_train_data (sum(FeatureLengths), ClassTrainDataHandle)</l>
+<l>set_feature_lengths_class_train_data (ClassTrainDataHandle, FeatureLengths, FeatureNames)</l>
+<l>FileNames := ['ocircle1', 'ocircle2', 'ocircle3',  'ocircle4',  'ocircle5', 'otriangle1', 'otriangle2', 'otriangle3', 'otriangle4','otriangle5','oquadrilateral1','oquadrilateral2','oquadrilateral3','oquadrilateral4','oquadrilateral5','opentagon1','opentagon2','opentagon3','opentagon4','opentagon5']</l>
+<l>ClassNamesImage :=  ['ocircle', 'ocircle', 'ocircle',  'ocircle',  'ocircle', 'otriangle', 'otriangle', 'otriangle', 'otriangle','otriangle','oquadrilateral','oquadrilateral','oquadrilateral','oquadrilateral','oquadrilateral','opentagon','opentagon','opentagon','opentagon','opentagon']</l>
+<l>Class := 0</l>
+<l>for I := 0 to |FileNames| - 1 by 1</l>
+<l>    if (I &gt;= 4)</l>
+<l>            Class := Class + 1</l>
+<l>        endif</l>
+<l>    read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/任务4/挑的/bin/' + FileNames[I])</l>
+<l>dev_display (Image)</l>
+<l>threshold (Image, Region, 5, 240)</l>
+<l>      dev_display (Image)</l>
+<l>    calculate_features (Region, Image, FeatureNames, Features)</l>
+<l>    add_sample_class_train_data (ClassTrainDataHandle, 'feature_column', Features,Class )</l>
+<l>endfor</l>
+<l>endfor</l>
+<l>select_feature_set_mlp (ClassTrainDataHandle, 'greedy', [], [], MLPHandle, SelectedFeatures, Score2)</l>
+<l>*select_feature_set_knn (ClassTrainDataHandle, 'greedy', [], [], KNNHandle, SelectedFeatures, Score1)</l>
+<l>*select_feature_set_svm (ClassTrainDataHandle, 'greedy', [], [], SVMHandle, SelectedFeatures, Score)</l>
+<l>for J := 1 to 3 by 1</l>
+<c>    * Segment pills in test image</c>
+<l>    read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/任务4/test/'+J+'.png')</l>
+<l>    dev_display (Image)</l>
+<l>        decompose3 (Image, r, g, b)</l>
+<l>        trans_from_rgb (r, g, b, h, s, v, 'hsv')</l>
+<l>        threshold (s, Regions, 10, 255)</l>
+<l>        connection (Regions, ConnectedRegions)</l>
+<l>        select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 70, 50000)</l>
+<l>        count_obj (SelectedRegions, Number)</l>
+<l>        sort_region (SelectedRegions, SortedRegions, 'character', 'true', 'row')</l>
+<l>        dev_display (Image)</l>
+<l>    for i := 1 to Number by 1</l>
+<l>        select_obj (SortedRegions, ObjectSelected, i)</l>
+<l>        calculate_features (ObjectSelected, Image, SelectedFeatures, Features)</l>
+<c>        </c>
+<l>        classify_class_mlp (MLPHandle, Features, 1, Class, Confidence)</l>
+<l>        *classify_class_knn (KNNHandle, Features, Result, Rating)</l>
+<l>        *classify_class_svm (SVMHandle, Features, Class, Rating)</l>
+<l>        area_center (ObjectSelected, Area, Row, Column)</l>
+<l>        disp_message (WindowHandle, Class , 'image', Row, Column - 10, 'black', 'true')</l>
+<l>    endfor</l>
+<l>    disp_message (WindowHandle, 'Classify image ' + I + ' of 3 using following features:', 'window', 12, 12, 'black', 'true')</l>
+<l>    disp_message (WindowHandle, SelectedFeatures, 'window', 40, 12, 'black', 'true')</l>
+<l>    if (I &lt; 3)</l>
+<l>        disp_continue_message (WindowHandle, 'black', 'true')</l>
+<c>        </c>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="segment_pills">
+<interface>
+<io>
+<par name="Image" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="Pills" base_type="iconic" dimension="0"/>
+</oo>
+</interface>
+<body>
+<c>* Segment pills based on red and blue channel</c>
+<l>decompose3 (Image, ImageR, ImageG, ImageB)</l>
+<l>threshold (ImageR, RegionR, 0, 60)</l>
+<l>threshold (ImageB, RegionB, 0, 100)</l>
+<l>union2 (RegionR, RegionB, RegionUnion)</l>
+<l>closing_circle (RegionUnion, RegionClosing, 2.5)</l>
+<l>connection (RegionClosing, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 150, 99999)</l>
+<l>fill_up (SelectedRegions, Pills)</l>
+<l>return ()</l>
+</body>
+<docu id="segment_pills">
+<parameters>
+<parameter id="Image"/>
+<parameter id="Pills"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

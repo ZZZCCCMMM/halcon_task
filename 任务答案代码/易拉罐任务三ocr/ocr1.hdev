@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>*  Prepare text model</c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[2,1]" as_ord="3"></c>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,1]" as_ord="4">create_text_model_reader ('manual', [], TextModel)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,2]" as_ord="1">set_text_model_param (TextModel, 'manual_is_dotprint', 'true')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,2]" as_ord="2">set_text_model_param (TextModel, 'manual_char_width', 39)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,2]" as_ord="3">set_text_model_param (TextModel, 'manual_char_height', 47)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,2]" as_ord="4">set_text_model_param (TextModel, 'manual_stroke_width', 6.2)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,2]" as_ord="5">set_text_model_param (TextModel, 'manual_return_punctuation', 'false')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,2]" as_ord="6">set_text_model_param (TextModel, 'manual_return_separators', 'false')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,2]" as_ord="7">set_text_model_param (TextModel, 'manual_uppercase_only', 'true')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,2]" as_ord="8">set_text_model_param (TextModel, 'manual_fragment_size_min', 9)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,2]" as_ord="9">set_text_model_param (TextModel, 'manual_eliminate_border_blobs', 'true')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,2]" as_ord="10">set_text_model_param (TextModel, 'manual_base_line_tolerance', 0.2)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,2]" as_ord="11">set_text_model_param (TextModel, 'manual_max_line_num', 1)</l>
+<c as_id="ocr" as_name="OCR 02" as_grp="[2,3]" as_ord="1">*  </c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[2,3]" as_ord="2">*  Load classifier</c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[2,3]" as_ord="3"> </c>
+<l as_id="ocr" as_name="OCR 02" as_grp="[2,3]" as_ord="4">read_ocr_class_mlp ('DotPrint_0-9A-Z_NoRej.omc', OcrHandle)</l>
+<c as_id="ocr" as_name="OCR 02" as_grp="[3,1]" as_ord="1"></c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[3,1]" as_ord="2">* The code which follows is to be executed once / image    </c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[3,1]" as_ord="3"></c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[3,1]" as_ord="4">* </c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[3,1]" as_ord="5">*  Load image</c>
+<l as_id="ocr" as_name="OCR 02" as_grp="[3,1]" as_ord="6">read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/易拉罐/素材/6.png')</l>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,1]" as_ord="1">* : </c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,1]" as_ord="2">*  Perform actual processing (once per ROI)</c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="1">*  Generate regions of interest</c>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,2]" as_ord="1">gen_rectangle1 (ROI_OCR_02_0, 199.652, 117.262, 251.304, 583.168)</l>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="1">*  </c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="2">*  Extract symbol regions (segmentation step)</c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="3">*  Only consider first channel for color images</c>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="4">access_channel (Image, TmpObj_Mono, 1)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="5">reduce_domain (TmpObj_Mono, ROI_OCR_02_0, TmpObj_MonoReduced_OCR_02_0)</l>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="6"></c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="7">*  Orientation Correction (for consistent border and domain</c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="8">*  handling, this is always applied, even with no rotation)</c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="9"> </c>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="10">hom_mat2d_identity (TmpCtrl_MatrixIdentity)</l>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="11">*  Apply transformation to image and domain</c>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="12">get_domain (TmpObj_MonoReduced_OCR_02_0, TmpObj_Domain)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="13">get_system ('clip_region', TmpCtrl_ClipRegion)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="14">set_system ('clip_region', 'false')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="15">dilation_circle (TmpObj_Domain, TmpObj_DomainExpanded, 31)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="16">affine_trans_region (TmpObj_DomainExpanded, TmpObj_DomainTransformedRaw, TmpCtrl_MatrixIdentity, 'true')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="17">smallest_rectangle1 (TmpObj_DomainTransformedRaw, TmpCtrl_Row1, TmpCtrl_Col1, TmpCtrl_Row2, TmpCtrl_Col2)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="18">hom_mat2d_translate (TmpCtrl_MatrixIdentity, -TmpCtrl_Row1, -TmpCtrl_Col1, TmpCtrl_MatrixTranslation)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="19">hom_mat2d_compose (TmpCtrl_MatrixTranslation, TmpCtrl_MatrixIdentity, TmpCtrl_MatrixComposite)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="20">affine_trans_region (TmpObj_Domain, TmpObj_DomainTransformed, TmpCtrl_MatrixComposite, 'true')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="21">affine_trans_image (TmpObj_MonoReduced_OCR_02_0, TmpObj_ImageTransformed, TmpCtrl_MatrixComposite, 'constant', 'true')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="22">dilation_circle (TmpObj_Domain, TmpObj_DomainExpanded, 31)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="23">expand_domain_gray (TmpObj_ImageTransformed, TmpObj_ImageTransformedExpanded, 31)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="24">reduce_domain (TmpObj_ImageTransformed, TmpObj_DomainTransformed, TmpObj_ImageTransformedReduced)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="25">crop_part (TmpObj_ImageTransformedReduced, TmpObj_MonoReduced_OCR_02_0, 0, 0, TmpCtrl_Col2-TmpCtrl_Col1+1, TmpCtrl_Row2-TmpCtrl_Row1+1)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="26">set_system ('clip_region', TmpCtrl_ClipRegion)</l>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="27"> </c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="28">*  Slant Correction</c>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="29"></c>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="30">text_line_slant (TmpObj_MonoReduced_OCR_02_0, TmpObj_MonoReduced_OCR_02_0, 47, -0.244346, 0.174533, TmpCtrl_Slant)</l>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="31">*  Build slant matrix</c>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="32">hom_mat2d_identity (TmpCtrl_MatrixIdentity)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="33">hom_mat2d_slant (TmpCtrl_MatrixIdentity, -TmpCtrl_Slant, 'x', 0, 0, TmpCtrl_MatrixSlant)</l>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="34">*  Apply transformation to image and domain</c>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="35">get_domain (TmpObj_MonoReduced_OCR_02_0, TmpObj_Domain)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="36">get_system ('clip_region', TmpCtrl_ClipRegion)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="37">set_system ('clip_region', 'false')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="38">dilation_circle (TmpObj_Domain, TmpObj_DomainExpanded, 31)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="39">affine_trans_region (TmpObj_DomainExpanded, TmpObj_DomainTransformedRaw, TmpCtrl_MatrixSlant, 'true')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="40">smallest_rectangle1 (TmpObj_DomainTransformedRaw, TmpCtrl_Row1, TmpCtrl_Col1, TmpCtrl_Row2, TmpCtrl_Col2)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="41">hom_mat2d_translate (TmpCtrl_MatrixIdentity, -TmpCtrl_Row1, -TmpCtrl_Col1, TmpCtrl_MatrixTranslation)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="42">hom_mat2d_compose (TmpCtrl_MatrixTranslation, TmpCtrl_MatrixSlant, TmpCtrl_MatrixComposite)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="43">affine_trans_region (TmpObj_Domain, TmpObj_DomainTransformed, TmpCtrl_MatrixComposite, 'true')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="44">affine_trans_image (TmpObj_MonoReduced_OCR_02_0, TmpObj_ImageTransformed, TmpCtrl_MatrixComposite, 'constant', 'true')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="45">dilation_circle (TmpObj_Domain, TmpObj_DomainExpanded, 31)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="46">expand_domain_gray (TmpObj_ImageTransformed, TmpObj_ImageTransformedExpanded, 31)</l>
+<l>area_center (TmpObj_DomainExpanded, Area, Row, Column)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="47">reduce_domain (TmpObj_ImageTransformed, TmpObj_DomainTransformed, TmpObj_MonoReduced_OCR_02_0)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="48">set_system ('clip_region', TmpCtrl_ClipRegion)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,3]" as_ord="49">find_text (TmpObj_MonoReduced_OCR_02_0, TextModel, TmpCtrl_ResultHandle_OCR_02_0)</l>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,4]" as_ord="1">* Read text (classification step)</c>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,4]" as_ord="3">get_text_object (Symbols_OCR_02_0, TmpCtrl_ResultHandle_OCR_02_0, 'manual_all_lines')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,4]" as_ord="4">dev_display (TmpObj_MonoReduced_OCR_02_0)</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,4]" as_ord="5">dev_set_draw ('fill')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,4]" as_ord="6">dev_set_colored (3)</l>
+<c></c>
+<l>dev_update_window ('off')</l>
+<l as_id="ocr" as_name="OCR 02" as_grp="[4,4]" as_ord="8">do_ocr_multi_class_mlp (Symbols_OCR_02_0, TmpObj_MonoReduced_OCR_02_0, OcrHandle, SymbolNames_OCR_02_0, Confidences_OCR_02_0)</l>
+<c as_id="ocr" as_name="OCR 02" as_grp="[4,4]" as_ord="10"></c>
+<c as_id="ocr" as_name="OCR 04" as_grp="[1,1]" as_ord="1">*  Code generated by OCR 04</c>
+<c as_id="ocr" as_name="OCR 04" as_grp="[2,1]" as_ord="1"></c>
+<c as_id="ocr" as_name="OCR 04" as_grp="[2,1]" as_ord="2">*  Prepare text model</c>
+<c as_id="ocr" as_name="OCR 04" as_grp="[2,1]" as_ord="3"></c>
+<l as_id="ocr" as_name="OCR 04" as_grp="[2,1]" as_ord="4">create_text_model_reader ('manual', [], TextModel)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[2,2]" as_ord="1">set_text_model_param (TextModel, 'manual_is_dotprint', 'true')</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[2,2]" as_ord="2">set_text_model_param (TextModel, 'manual_char_width', 39)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[2,2]" as_ord="3">set_text_model_param (TextModel, 'manual_char_height', 37)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[2,2]" as_ord="4">set_text_model_param (TextModel, 'manual_stroke_width', 11.1)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[2,2]" as_ord="5">set_text_model_param (TextModel, 'manual_return_punctuation', 'false')</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[2,2]" as_ord="6">set_text_model_param (TextModel, 'manual_uppercase_only', 'true')</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[2,2]" as_ord="7">set_text_model_param (TextModel, 'manual_fragment_size_min', 30)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[2,2]" as_ord="8">set_text_model_param (TextModel, 'manual_eliminate_border_blobs', 'true')</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[2,2]" as_ord="9">set_text_model_param (TextModel, 'manual_base_line_tolerance', 0.2)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[2,2]" as_ord="10">set_text_model_param (TextModel, 'manual_max_line_num', 1)</l>
+<c as_id="ocr" as_name="OCR 04" as_grp="[2,3]" as_ord="1"> </c>
+<c as_id="ocr" as_name="OCR 04" as_grp="[2,3]" as_ord="2">*  Load classifier</c>
+<c as_id="ocr" as_name="OCR 04" as_grp="[2,3]" as_ord="3"> </c>
+<l as_id="ocr" as_name="OCR 04" as_grp="[2,3]" as_ord="4">read_ocr_class_mlp ('DotPrint_0-9+_NoRej.omc', OcrHandle)</l>
+<c as_id="ocr" as_name="OCR 04" as_grp="[3,1]" as_ord="1">* Load image</c>
+<l as_id="ocr" as_name="OCR 04" as_grp="[3,1]" as_ord="6">read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/易拉罐/素材/6.png')</l>
+<c as_id="ocr" as_name="OCR 04" as_grp="[4,1]" as_ord="1">*  Generate regions of interest</c>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,2]" as_ord="1">gen_rectangle1 (ROI_OCR_04_0, 250.373, 107.507, 299.365, 572)</l>
+<c as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="1">* : Only consider first channel for color images</c>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="4">access_channel (Image, TmpObj_Mono, 1)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="5">reduce_domain (TmpObj_Mono, ROI_OCR_04_0, TmpObj_MonoReduced_OCR_04_0)</l>
+<c as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="6">*  Base orientation of ROI</c>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="11">TmpCtrl_Orientation := 0</l>
+<c as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="12">*  Corrected for text line orientation</c>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="13">TmpCtrl_RangeMin := -0.174533</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="14">TmpCtrl_RangeMax := 0.174533</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="15">text_line_orientation (TmpObj_MonoReduced_OCR_04_0, TmpObj_MonoReduced_OCR_04_0, 37, TmpCtrl_Orientation+TmpCtrl_RangeMin, TmpCtrl_Orientation+TmpCtrl_RangeMax, TmpCtrl_Orientation)</l>
+<c as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="16">*  Build rotation matrix</c>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="17">hom_mat2d_identity (TmpCtrl_MatrixIdentity)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="18">hom_mat2d_rotate (TmpCtrl_MatrixIdentity, -TmpCtrl_Orientation, 0, 0, TmpCtrl_MatrixRotation)</l>
+<c as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="19">*  Apply transformation to image and domain</c>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="20">get_domain (TmpObj_MonoReduced_OCR_04_0, TmpObj_Domain)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="21">get_system ('clip_region', TmpCtrl_ClipRegion)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="22">set_system ('clip_region', 'false')</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="23">dilation_circle (TmpObj_Domain, TmpObj_DomainExpanded, 55)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="24">affine_trans_region (TmpObj_DomainExpanded, TmpObj_DomainTransformedRaw, TmpCtrl_MatrixRotation, 'true')</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="25">smallest_rectangle1 (TmpObj_DomainTransformedRaw, TmpCtrl_Row1, TmpCtrl_Col1, TmpCtrl_Row2, TmpCtrl_Col2)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="26">hom_mat2d_translate (TmpCtrl_MatrixIdentity, -TmpCtrl_Row1, -TmpCtrl_Col1, TmpCtrl_MatrixTranslation)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="27">hom_mat2d_compose (TmpCtrl_MatrixTranslation, TmpCtrl_MatrixRotation, TmpCtrl_MatrixComposite)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="28">affine_trans_region (TmpObj_Domain, TmpObj_DomainTransformed, TmpCtrl_MatrixComposite, 'true')</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="29">affine_trans_image (TmpObj_MonoReduced_OCR_04_0, TmpObj_ImageTransformed, TmpCtrl_MatrixComposite, 'constant', 'true')</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="30">dilation_circle (TmpObj_Domain, TmpObj_DomainExpanded, 55)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="31">expand_domain_gray (TmpObj_ImageTransformed, TmpObj_ImageTransformedExpanded, 55)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="32">reduce_domain (TmpObj_ImageTransformed, TmpObj_DomainTransformed, TmpObj_ImageTransformedReduced)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="33">crop_part (TmpObj_ImageTransformedReduced, TmpObj_MonoReduced_OCR_04_0, 0, 0, TmpCtrl_Col2-TmpCtrl_Col1+1, TmpCtrl_Row2-TmpCtrl_Row1+1)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="34">set_system ('clip_region', TmpCtrl_ClipRegion)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,3]" as_ord="35">find_text (TmpObj_MonoReduced_OCR_04_0, TextModel, TmpCtrl_ResultHandle_OCR_04_0)</l>
+<c as_id="ocr" as_name="OCR 04" as_grp="[4,4]" as_ord="1">*  Read text (classification step)</c>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,4]" as_ord="3">get_text_object (Symbols_OCR_04_0, TmpCtrl_ResultHandle_OCR_04_0, 'manual_all_lines')</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,4]" as_ord="4">dev_display (TmpObj_MonoReduced_OCR_04_0)</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,4]" as_ord="5">dev_set_draw ('fill')</l>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,4]" as_ord="6">dev_set_colored (3)</l>
+<c></c>
+<l as_id="ocr" as_name="OCR 04" as_grp="[4,4]" as_ord="8">do_ocr_multi_class_mlp (Symbols_OCR_04_0, TmpObj_MonoReduced_OCR_04_0, OcrHandle, SymbolNames_OCR_04_0, Confidences_OCR_04_0)</l>
+<c></c>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_clear_window ()</l>
+<l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<l>dev_display (Image)</l>
+<l>disp_message (WindowHandle, SymbolNames_OCR_02_0, 'image',Row, Column, 'red', 'false')</l>
+<l>disp_message (WindowHandle, SymbolNames_OCR_04_0, 'image',Row, Column+50, 'red', 'false')</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

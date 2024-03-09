@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/易拉罐/素材/2.png')</l>
+<l>emphasize (Image, ImageEmphasize, 15, 15, 10)</l>
+<l>get_image_size (Image, Width, Height)</l>
+<c></c>
+<l>dot :=[200,100,250,575,250,100,295,560]</l>
+<l>for i := 0 to 1 by 1</l>
+<l>     clip_region (Image, RegionClipped, dot[4*i], dot[4*i+1], dot[4*i+2], dot[4*i+3])</l>
+<l>dots_image (ImageEmphasize, DotImage, 5, 'dark', 0)</l>
+<c>*对点状直接提取</c>
+<l>reduce_domain (DotImage, RegionClipped, ImageReduced)</l>
+<l>invert_image (ImageReduced, ImageInvert)</l>
+<l>binary_threshold (ImageReduced, Region, 'max_separability', 'light', UsedThreshold)</l>
+<c></c>
+<l>dilation_rectangle1 (Region, RegionDilation, 12,12)</l>
+<l>erosion_rectangle1 (RegionDilation, RegionErosion, 6, 7)</l>
+<l>connection (RegionErosion, ConnectedRegions)</l>
+<c></c>
+<c></c>
+<l>shape_trans (ConnectedRegions, RegionTrans,'rectangle1')</l>
+<l>select_shape (RegionTrans, SelectedRegions, 'area', 'and', 150, 99999)</l>
+<l>partition_rectangle (SelectedRegions, Partitioned, 45, 100)</l>
+<l>intersection (Partitioned, Region, RegionIntersection)</l>
+<l>closing_circle (RegionIntersection, RegionClosing, 4)</l>
+<l>sort_region (RegionIntersection, SortedRegions, 'character', 'true', 'row')</l>
+<c></c>
+<l>read_ocr_class_mlp ('C:/Users/FBIzhu/Desktop/任务/易拉罐/Number.omc', OCRHandle)</l>
+<l>do_ocr_multi_class_mlp (SortedRegions, ImageInvert, OCRHandle, Class, Confidence)</l>
+<l>dev_display (Image)</l>
+<l>smallest_rectangle1 (SortedRegions, Row1, Column1, Row2, Column2)</l>
+<l>count_obj (SortedRegions, Number1)</l>
+<l>dev_get_window (WindowHandle)</l>
+<l>disp_message (WindowHandle, Class, 'window', Row1, Column1-80, 'black', 'true')</l>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

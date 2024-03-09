@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>classes :=['圆','三角形','四边形','五边形']</l>
+<l>Lable1 :=[3,0,2,2,2,1,1,2,1,1,3,0]</l>
+<l>Lable2 :=[1,1,0,2,3,1,3]</l>
+<l>Lable3 :=[3,1,2,1,2,0,1,2,3,0]</l>
+<c></c>
+<l>create_class_knn (1,KNNHandle)</l>
+<l>set_params_class_knn (KNNHandle, ['method','k','max_num_classes'], ['classes_weighted_frequencies',3,1])</l>
+<l>for id := 1 to 3 by 1</l>
+<l>    if (id=1)</l>
+<l>        Lable:=Lable1</l>
+<l>    elseif (id=2)</l>
+<l>        Lable:=Lable2</l>
+<l>    else</l>
+<l>        Lable:=Lable3 </l>
+<l>    endif</l>
+<l>    read_image (Image,'D:/desk/相机标定/任务/任务4/train/'+id+'.png')</l>
+<l>    rgb1_to_gray (Image,GrayImage)</l>
+<l>    threshold (GrayImage, Regions, 0, 243)</l>
+<l>    connection (Regions, ConnectedRegions)</l>
+<l>    sort_region (ConnectedRegions, SortedRegions, 'first_point', 'true', 'row')</l>
+<l>    count_obj (SortedRegions, Number)</l>
+<l>    if (Number#|Lable|)</l>
+<l>        stop ()</l>
+<l>    endif</l>
+<l>    for i := 1 to Number by 1</l>
+<l>        select_obj (SortedRegions, ObjectSelected, i)</l>
+<l>        dilation_circle (ObjectSelected, RegionDilation, 3.5)</l>
+<l>        reduce_domain (GrayImage, RegionDilation, ImageReduced)</l>
+<l>        points_harris (ImageReduced, 0.6, 2, 0.08, 1000, Row, Column)</l>
+<l>        Feature:=|Row|</l>
+<l>        if (Feature=[])</l>
+<l>            Feature:=0</l>
+<l>        endif</l>
+<l>        gen_cross_contour_xld (Cross, Row, Column, 12, 0.785398)</l>
+<l>        dev_display (GrayImage)</l>
+<l>        dev_display (Cross)</l>
+<l>        add_sample_class_knn (KNNHandle, real([Feature]), Lable[i-1])</l>
+<c>        </c>
+<l>    endfor</l>
+<l>endfor</l>
+<l>train_class_knn (KNNHandle, [], [])</l>
+<l>results:=[]</l>
+<l>for id := 1 to 3 by 1</l>
+<l>    read_image (Image,'D:/desk/相机标定/任务/任务4/test/'+id+'.png')</l>
+<l>    rgb1_to_gray (Image, GrayImage)</l>
+<l>    threshold (GrayImage, Regions, 0, 243)</l>
+<l>    connection (Regions, ConnectedRegions)</l>
+<l>    sort_region (ConnectedRegions, SortedRegions, 'first_point', 'true', 'row')</l>
+<l>    count_obj (SortedRegions, Number)</l>
+<l>    for i := 1 to Number by 1</l>
+<l>        select_obj (SortedRegions, ObjectSelected, i)</l>
+<l>        dilation_circle (ObjectSelected, RegionDilation, 3.5)</l>
+<l>        reduce_domain (GrayImage, RegionDilation, ImageReduced)</l>
+<l>        points_harris (ImageReduced, 0.6, 2, 0.08, 1000, Row, Column)</l>
+<l>        Feature:=|Row|</l>
+<l>        if (Feature=[])</l>
+<l>            Feature:=0</l>
+<l>        endif</l>
+<l>        gen_cross_contour_xld (Cross, Row, Column, 12, 0.785398)</l>
+<l>        dev_display (GrayImage)</l>
+<l>        dev_display (Cross)</l>
+<l>        classify_class_knn (KNNHandle, real([Feature]), Class, Rating)</l>
+<l>        results:=[results,classes[Class]]</l>
+<c>        </c>
+<l>    endfor</l>
+<l>    area_center (SortedRegions, Area, Row1, Column1)</l>
+<l>    dev_close_window ()</l>
+<l>    dev_clear_window ()</l>
+<l>    get_image_size (ImageReduced, Width, Height)</l>
+<l>    dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<c>    </c>
+<l>    dev_display (Image)</l>
+<l>    disp_message (WindowHandle, results, 'image', Row1, Column1, 'black', 'true')</l>
+<l>    results:=[]</l>
+<l>    stop()</l>
+<l>endfor</l>
+<l>clear_class_knn (KNNHandle)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

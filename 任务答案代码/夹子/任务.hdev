@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_update_off ()</l>
+<l>read_image (Image, 'D:/images/3.jpg')</l>
+<c></c>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_close_window()</l>
+<l>dev_open_window (0, 0, Width/6, Height/6, 'black', WindowHandle)</l>
+<l>set_display_font (WindowHandle, 14, 'mono', 'true', 'false')</l>
+<c></c>
+<l>emphasize (Image, ImageEmphasize, 20, 20, 10)</l>
+<l>*mean_image (Image, ImageMean, 5, 5)</l>
+<l>*scale_image_max (ImageMean, ImageScaleMax)</l>
+<l>decompose3 (ImageEmphasize, Red, Green, Blue)</l>
+<l>trans_from_rgb (Red, Green, Blue, Hue, Saturation, Intensity, 'hsv')</l>
+<l>threshold (Saturation, HighSaturation, 100,210)</l>
+<l>reduce_domain (Hue, HighSaturation, HueHighSaturation)</l>
+<l>dev_display(Image)</l>
+<l>HueRanges := [20, 55, 108, 138, 146, 160, 229, 254]</l>
+<l>FuseColors := ['yellow', 'green', 'bluye', 'pink']</l>
+<l>for Index := 0 to 3 by 1</l>
+<l>     threshold (HueHighSaturation, HighSaturation, HueRanges[Index * 2], HueRanges[Index * 2 + 1])</l>
+<l>     connection (HighSaturation, ConnectedRegions)</l>
+<l>     select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 6000, 96435.4)</l>
+<l>     fill_up (SelectedRegions, RegionFillUp)</l>
+<l>     opening_circle (RegionFillUp, RegionOpening, 3.5)</l>
+<l>     connection (RegionOpening, ConnectedRegions1)</l>
+<l>     select_shape (ConnectedRegions1, SelectedRegions1, 'area', 'and', 6500, 96435.4)</l>
+<l>     count_obj (SelectedRegions1, Number)</l>
+<c>     </c>
+<l>     disp_message (WindowHandle, FuseColors[Index] +'  '+ Number +' 个', 'window', 50*Index, 30, 'black', 'true')</l>
+<l>     disp_continue_message (WindowHandle, 'black', 'true')</l>
+<l>endfor</l>
+<c></c>
+<l>connection (HueHighSaturation, ConnectedRegions2)</l>
+<l>select_shape (ConnectedRegions2, SelectedRegions2, 'area', 'and', 6647.4, 96435.4)</l>
+<l>fill_up (SelectedRegions2, RegionFillUp1)</l>
+<l>opening_circle (RegionFillUp1, RegionOpening1, 3.5)</l>
+<l>connection (RegionOpening1, ConnectedRegions3)</l>
+<l>select_shape (ConnectedRegions3, SelectedRegions3, 'area', 'and', 7500, 96435.4)</l>
+<l>count_obj (SelectedRegions3, Number1)</l>
+<l>orientation_region (SelectedRegions3, Phi)</l>
+<l>area_center (SelectedRegions3, Area, Row, Column)</l>
+<l>dev_set_line_width (3)</l>
+<l>Length :=120</l>
+<l>for i :=1 to |Phi| by 1</l>
+<l>    dev_set_color ('red')</l>
+<l>    disp_arrow (WindowHandle, Row, Column,Row + Length * sin(Phi), Column - Length * cos(Phi), 4)</l>
+<l>    disp_message (WindowHandle,Row+'  '+'  '+Column,'image',Row+40, Column - 100, 'black', 'false')</l>
+<l>endfor</l>
+<l>disp_message (WindowHandle,'共 :' +Number1,'image',30, 2000, 'black', 'true')</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

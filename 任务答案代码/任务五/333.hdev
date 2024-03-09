@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>RecLength:=300/2</l>
+<l>Recwidth:=100/2</l>
+<l>circleraduis:=56</l>
+<c>*读入图像路径</c>
+<l>read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/任务4/train/2.png')</l>
+<l>dev_close_window ()</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<c></c>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<l>threshold (GrayImage, Region, 0, 243)</l>
+<l>connection (Region, ConnectedRegions) </l>
+<c>*选圆</c>
+<l>    select_shape (ConnectedRegions, SelectedRegions1, 'roundness', 'and', 0.95278, 1)</l>
+<l>    area_center (SelectedRegions1, Area, Row, Column)</l>
+<c>    *选中待测量的矩形，求矩形中心坐标和角度</c>
+<c>   </c>
+<l>    select_shape (ConnectedRegions, SelectedRegions, 'rectangularity', 'and', 0.87, 1)</l>
+<l>    area_center (SelectedRegions, Area1, Row2, Column2)</l>
+<l>    orientation_region (SelectedRegions, Phi)</l>
+<c>    *计算图中矩形的数量</c>
+<l>    count_obj (SelectedRegions, RecNumber)</l>
+<c>    *计算图中圆的数量</c>
+<l>    count_obj (SelectedRegions1, Number)</l>
+<c>    *创建计量模型</c>
+<l>    create_metrology_model (MetrologyHandle)</l>
+<c>    *设置计量模型的尺寸</c>
+<l>    set_metrology_model_image_size (MetrologyHandle, Width, Height)</l>
+<c>    </c>
+<c>    *只有一个圆</c>
+<l>if(Number=1)</l>
+<l>    dev_display (Image)</l>
+<c>        *添加圆的坐标和大概的半径</c>
+<l>        add_metrology_object_circle_measure (MetrologyHandle, Row, Column, circleraduis, 30, 5, 1, 30, [], [], Index)  </l>
+<c>        *显示圆的边缘轮廓</c>
+<l>        get_metrology_object_model_contour (Contour, MetrologyHandle, Index, 1.5)</l>
+<c>        *显示圆轮廓的测量范围</c>
+<l>        get_metrology_object_measures (Contours, MetrologyHandle, 'all', 'all', Row1, Column1)</l>
+<c>        *计算</c>
+<l>        apply_metrology_model (GrayImage, MetrologyHandle)</l>
+<l>        get_metrology_object_result_contour (Contour2, MetrologyHandle, 0, 'all', 1.5)</l>
+<c>        *得到半径</c>
+<l>        get_metrology_object_result (MetrologyHandle, Index, 'all', 'result_type', 'radius', Parameter)</l>
+<c>        *显示结果</c>
+<l>        set_display_font (WindowHandle, 14, 'mono', 'true', 'false')</l>
+<l>        disp_message (WindowHandle, '半径：'+Parameter, 'window', Row-480, Column-310, 'red', 'true')</l>
+<l>    endif</l>
+<c>    *只有一个矩形</c>
+<l>    if(RecNumber=1)</l>
+<c>        *添加矩形的坐标和角度，大致的测量范围</c>
+<c>        </c>
+<l>        add_metrology_object_rectangle2_measure (MetrologyHandle, Row2, Column2, Phi, RecLength, Recwidth, 20, 5, 1, 30, [], [], Index1)</l>
+<c>        *显示矩形的边缘轮廓</c>
+<l>        get_metrology_object_model_contour (Contour1, MetrologyHandle, Index1, 1.5)</l>
+<c>        *得到矩形的测量范围</c>
+<l>        get_metrology_object_measures (Contours1, MetrologyHandle, 'all', 'all', Row3, Column3)</l>
+<c>        *计算</c>
+<l>        apply_metrology_model (GrayImage, MetrologyHandle)</l>
+<l>        get_metrology_object_result_contour (Contour3, MetrologyHandle, 0, 'all', 1.5)</l>
+<c>        *得到矩形的长和宽</c>
+<l>        get_metrology_object_result (MetrologyHandle, Index1, 'all', 'result_type', 'length1', Parameter11)</l>
+<l>        get_metrology_object_result (MetrologyHandle, Index1, 'all', 'result_type', 'length2', Parameter12)</l>
+<c>        *显示</c>
+<l>        disp_message (WindowHandle, '长度：'+2*Parameter11+'  '+'宽度：'+Parameter12, 'window', Row2, Column2, 'red', 'true')</l>
+<l>    endif</l>
+<c>    </c>
+<c>    *清空计量模型     </c>
+<l>    clear_metrology_model (MetrologyHandle)</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

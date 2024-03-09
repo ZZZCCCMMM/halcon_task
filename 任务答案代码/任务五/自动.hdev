@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>classes :=['圆','三角形','四边形','五边形']</l>
+<l>Lable1 :=[3,0,2,2,2,1,1,2,1,1,3,0]</l>
+<l>Lable2 :=[1,1,0,2,3,1,3]</l>
+<l>Lable3 :=[3,1,2,1,2,0,1,2,3,0]</l>
+<c></c>
+<l>create_class_knn (1,KNNHandle)</l>
+<l>set_params_class_knn (KNNHandle, ['method','k','max_num_classes'], ['classes_weighted_frequencies',3,1])</l>
+<l>for id := 1 to 3 by 1</l>
+<l>    if (id=1)</l>
+<l>        Lable:=Lable1</l>
+<l>    elseif (id=2)</l>
+<l>        Lable:=Lable2</l>
+<l>    else</l>
+<l>        Lable:=Lable3 </l>
+<l>    endif</l>
+<l>    read_image (Image,'C:/Users/FBIzhu/Desktop/任务/任务4/train/'+id+'.png')</l>
+<l>    get_image_size (Image, Width, Height)</l>
+<l>    rgb1_to_gray (Image,GrayImage)</l>
+<l>    threshold (GrayImage, Regions, 0, 243)</l>
+<l>    connection (Regions, ConnectedRegions)</l>
+<l>    sort_region (ConnectedRegions, SortedRegions, 'first_point', 'true', 'row')</l>
+<l>    count_obj (SortedRegions, Number)</l>
+<l>    if (Number#|Lable|)</l>
+<l>        stop ()</l>
+<l>    endif</l>
+<l>    for i := 1 to Number by 1</l>
+<l>        select_obj (SortedRegions, ObjectSelected, i)</l>
+<l>        dilation_circle (ObjectSelected, RegionDilation, 3.5)</l>
+<l>        reduce_domain (GrayImage, RegionDilation, ImageReduced)</l>
+<l>        points_harris (ImageReduced, 0.6, 2, 0.08, 1000, Row, Column)</l>
+<l>        Feature:=|Row|</l>
+<l>        if (Feature=[])</l>
+<l>            Feature:=0</l>
+<l>        endif</l>
+<l>        gen_cross_contour_xld (Cross, Row, Column, 12, 0.785398)</l>
+<l>        dev_display (GrayImage)</l>
+<l>        dev_display (Cross)</l>
+<l>        add_sample_class_knn (KNNHandle, real([Feature]), Lable[i-1])</l>
+<c>        </c>
+<l>    endfor</l>
+<l>endfor</l>
+<l>train_class_knn (KNNHandle, [], [])</l>
+<l>results:=[]</l>
+<c></c>
+<c>    </c>
+<c>    </c>
+<c>    </c>
+<l>RecLength:=300/2</l>
+<l>Recwidth:=100/2</l>
+<l>circleraduis:=56</l>
+<l>distance1:=[]</l>
+<l>empty:=[]</l>
+<c></c>
+<l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<l>    create_metrology_model (MetrologyHandle)</l>
+<c>    *设置计量模型的尺寸</c>
+<l>    set_metrology_model_image_size (MetrologyHandle, Width, Height)  </l>
+<c>    </c>
+<c>    </c>
+<c>    </c>
+<c>    </c>
+<l>for id := 1 to 3 by 1</l>
+<l>    read_image (Image,'C:/Users/FBIzhu/Desktop/任务/任务4/train/'+2+'.png')</l>
+<l>    get_image_size (Image, Width, Height)</l>
+<l>      dev_display (Image)</l>
+<l>    rgb1_to_gray (Image, GrayImage)</l>
+<l>    threshold (GrayImage, Regions, 0, 243)</l>
+<l>    connection (Regions, ConnectedRegions)</l>
+<l>    select_shape (ConnectedRegions, SelectedRegion_s, 'rectangularity', 'and', 0.87, 1)</l>
+<l>    area_center (SelectedRegion_s, Area1, Row2, Column2)</l>
+<l>    orientation_region (SelectedRegion_s, Phi)</l>
+<c></c>
+<l>    sort_region (ConnectedRegions, SortedRegions, 'first_point', 'true', 'row')</l>
+<l>    count_obj (SortedRegions, Number)</l>
+<l>    for i := 1 to Number by 1</l>
+<l>        select_obj (SortedRegions, ObjectSelected, i)</l>
+<l>        dilation_circle (ObjectSelected, RegionDilation, 3.5)</l>
+<l>        reduce_domain (GrayImage, RegionDilation, ImageReduced)</l>
+<l>        points_harris (ImageReduced, 0.6, 2, 0.08, 1000, Row, Column)</l>
+<l>        Feature:=|Row|</l>
+<l>        if (Feature=[])</l>
+<l>            Feature:=0</l>
+<l>        endif</l>
+<l>        gen_cross_contour_xld (Cross, Row, Column, 12, 0.785398)</l>
+<l>        dev_display (GrayImage)</l>
+<l>        dev_display (Cross)</l>
+<l>        classify_class_knn (KNNHandle, real([Feature]), Class, Rating)</l>
+<l>    area_center (ObjectSelected, Area, Row_s, Column_s)</l>
+<c></c>
+<c>        </c>
+<l>        if (classes[Class]=='圆')</l>
+<c>            </c>
+<l>         add_metrology_object_circle_measure (MetrologyHandle, Row_s, Column_s, circleraduis, 30, 5, 1, 30, [], [], Index)  </l>
+<c>        *显示圆的边缘轮廓</c>
+<l>        get_metrology_object_model_contour (Contour, MetrologyHandle, Index, 1.5)</l>
+<c>        *显示圆轮廓的测量范围</c>
+<l>        get_metrology_object_measures (Contours, MetrologyHandle, 'all', 'all', Row1, Column1)</l>
+<c>        *计算</c>
+<l>        apply_metrology_model (GrayImage, MetrologyHandle)</l>
+<l>        get_metrology_object_result_contour (Contour2, MetrologyHandle, 0, 'all', 1.5)</l>
+<c>        *得到半径</c>
+<l>        get_metrology_object_result (MetrologyHandle, Index, 'all', 'result_type', 'radius', Parameter)</l>
+<c>        *显示结果</c>
+<l>        set_display_font (WindowHandle, 14, 'mono', 'true', 'false')</l>
+<l>        disp_message (WindowHandle, '半径：'+Parameter, 'window', Row_s, Column_s, 'red', 'true')</l>
+<c>        </c>
+<c>        </c>
+<c>        </c>
+<c>        </c>
+<l>    area_center (SortedRegions, Area, Row1, Column1)</l>
+<l>    dev_close_window ()</l>
+<l>    dev_clear_window ()</l>
+<l>    get_image_size (ImageReduced, Width, Height)</l>
+<c></c>
+<c>    </c>
+<c>  </c>
+<l>    disp_message (WindowHandle, Parameter, 'image', Row1, Column1, 'black', 'true')</l>
+<c> </c>
+<c></c>
+<c>    </c>
+<c>    </c>
+<c>    </c>
+<l>        elseif (classes[Class]=='四边形')</l>
+<c></c>
+<l>         add_metrology_object_rectangle2_measure (MetrologyHandle, Row, Column, Phi, RecLength, Recwidth, 20, 5, 1, 30, [], [], Index1)</l>
+<c>        *显示矩形的边缘轮廓</c>
+<l>        get_metrology_object_model_contour (Contour1, MetrologyHandle, Index1, 1.5)</l>
+<c>        *得到矩形的测量范围</c>
+<l>        get_metrology_object_measures (Contours1, MetrologyHandle, 'all', 'all', Row3, Column3)</l>
+<c>        *计算</c>
+<l>        apply_metrology_model (GrayImage, MetrologyHandle)</l>
+<l>        get_metrology_object_result_contour (Contour3, MetrologyHandle, 0, 'all', 1.5)</l>
+<c>        *得到矩形的长和宽</c>
+<l>        get_metrology_object_result (MetrologyHandle, Index1, 'all', 'result_type', 'length1', Parameter11)</l>
+<l>        get_metrology_object_result (MetrologyHandle, Index1, 'all', 'result_type', 'length2', Parameter12)</l>
+<c>        *显示</c>
+<l>        disp_message (WindowHandle, '长度：'+2*Parameter11+'  '+'宽度：'+Parameter12, 'window', Row_s, Column2, 'red', 'true')</l>
+<l>        else</l>
+<c></c>
+<c></c>
+<c>*提取亚像素轮廓</c>
+<l>            boundary (ObjectSelected, RegionBorder, 'inner')</l>
+<l>            dilation_rectangle1 (RegionBorder, RegionDilation, 5, 5)</l>
+<l>            reduce_domain (Image, RegionDilation, ImageReduced)</l>
+<l>            edges_sub_pix (GrayImage, Edges, 'canny', 1, 20, 40)</l>
+<l>            select_shape_xld (Edges, SelectedXLD, 'contlength', 'and', 22.98, 1000)</l>
+<c> </c>
+<c>*分割轮廓</c>
+<l>            segment_contours_xld (SelectedXLD, ContoursSplit, 'lines_circles', 6, 4, 4)</l>
+<l>            count_obj (ContoursSplit, Number_s)</l>
+<l>            dev_set_line_width (2)</l>
+<l>            set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<l>            k:=1</l>
+<l>            c:=1</l>
+<l>            line_row:=[]</l>
+<l>            line_col:=[]</l>
+<c> </c>
+<c>*拟合测量</c>
+<l>            for i:=1 to Number_s by 1</l>
+<l>                select_obj (ContoursSplit, ObjectSelected_s, i)</l>
+<c>   *得到轮廓的'cont_approx'属性，-1时为直线，1时为圆</c>
+<l>   get_contour_global_attrib_xld (ObjectSelected_s, 'cont_approx', Attrib)</l>
+<l>   if(Attrib == -1)</l>
+<c>       *直线拟合</c>
+<l>       fit_line_contour_xld (ObjectSelected_s, 'tukey', -1, 0, 5, 2, RowBegin, ColBegin, RowEnd, ColEnd, Nr, Nc, Dist)</l>
+<c>       *生成多边形亚像素轮廓</c>
+<l>       gen_contour_polygon_xld (line, [RowBegin,RowEnd], [ColBegin,ColEnd]) </l>
+<l>       distance_pp (RowBegin, ColBegin, RowEnd, ColEnd, Distance)</l>
+<l>       distance1:=[distance1,Distance]</l>
+<c>   </c>
+<l>   endif</l>
+<l>   tuple_add (distance1, empty, Sum)</l>
+<c>   </c>
+<l>   disp_message (WindowHandle, 'L'+'='+Sum, 'window', Row_s+2, Column_s+2, 'white', 'false')</l>
+<c>   </c>
+<l>endfor</l>
+<c></c>
+<l>        endif   </l>
+<l>    endfor</l>
+<c></c>
+<l>endfor</l>
+<l>clear_class_knn (KNNHandle)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

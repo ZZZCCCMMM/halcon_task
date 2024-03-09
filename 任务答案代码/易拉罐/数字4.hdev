@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/易拉罐/素材/2.png')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_close_window ()</l>
+<l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<l>dev_set_color ('red')</l>
+<l>dev_display (Image)</l>
+<l>emphasize (Image, ImageEmphasize, 30, 30, 20)</l>
+<l>threshold (ImageEmphasize, Region, 128, 230)</l>
+<l>fill_up (Region, RegionFillUp)</l>
+<l>area_center (RegionFillUp, Area1, Row1, Column1)</l>
+<l>gen_circle (Circle, Row1, Column1, 300)</l>
+<l>reduce_domain (ImageEmphasize, Circle, ImageReduced1)</l>
+<l>model :=['0','1','2','4','5','6','7','8','9','B',':']</l>
+<l>colum :=[380,432,235,260,117,169,518,556,301,347,477,518,444,492,260,308,353,396,523,573,219,237]</l>
+<l>row :=[251,296,200,251,200,251,251,294,251,294,251,294,200,251,200,251,200,251,210,251,251,296]</l>
+<l>rm_colum:=[219,237]</l>
+<l>rm_row :=[251,296]</l>
+<l>n_row :=[]</l>
+<l>n_column :=[]</l>
+<l>dev_display (Image)</l>
+<l>for i := 0 to |model|-1 by 1</l>
+<l>    gen_rectangle1 (Rectangle, row[2*i], colum[2*i], row[2*i+1], colum[2*i+1]) </l>
+<l>reduce_domain (ImageEmphasize, Rectangle, ImageReduced)</l>
+<c></c>
+<l>create_scaled_shape_model (ImageReduced, 6, rad(0), rad(45), 0.9, 0.8, 1.0, 'auto', 'auto', 'ignore_local_polarity', 'auto_contrast_hyst', 'auto', ModelID)</l>
+<l>get_shape_model_contours (Model, ModelID, 1)</l>
+<l>area_center (ImageReduced, Area, RowRef, ColumnRef)</l>
+<l>vector_angle_to_rigid (0, 0, 0, RowRef, ColumnRef, 0, HomMat2D)</l>
+<l>affine_trans_contour_xld (Model, ModelTrans, HomMat2D)</l>
+<c></c>
+<l>read_image (ImageSearch, 'C:/Users/FBIzhu/Desktop/任务/易拉罐/素材/2.png')</l>
+<c></c>
+<c></c>
+<l>find_scaled_shape_model (ImageReduced1, ModelID, rad(0), rad(45),0.8,1, 0.75, 5, 1, 'least_squares_high', 6, 0.8, Row, Column, Angle, Scale, Score)</l>
+<l>for I := 0 to |Score| - 1 by 1</l>
+<l>    hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>    hom_mat2d_translate (HomMat2DIdentity, Row[I], Column[I], HomMat2DTranslate)</l>
+<l>    hom_mat2d_rotate (HomMat2DTranslate, Angle[I], Row[I], Column[I], HomMat2DRotate)</l>
+<l>    hom_mat2d_scale (HomMat2DRotate, Scale[I], Scale[I], Row[I], Column[I], HomMat2DScale)</l>
+<l>    affine_trans_contour_xld (Model, ModelTrans, HomMat2DScale)</l>
+<l>    n_row :=[n_row,Row[I]]</l>
+<l>    n_column :=[n_column,Column[I]]</l>
+<c>    </c>
+<l>endfor</l>
+<l>disp_message (WindowHandle, model[i], 'window', Row+100, Column, 'black', 'true')</l>
+<c></c>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

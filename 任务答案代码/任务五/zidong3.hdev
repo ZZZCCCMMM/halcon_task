@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>*采集图像</c>
+<l>read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/任务4/train/2.png')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<l>dev_display (Image)</l>
+<l>dev_set_color ('yellow')</l>
+<c> </c>
+<c>*定位</c>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<l>threshold (GrayImage, Regions, 0, 243)</l>
+<l>area_center (Regions, Area, Row, Column)</l>
+<l>orientation_region (Regions, Phi)</l>
+<l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<l>dev_display (Image)</l>
+<c></c>
+<c>*提取亚像素轮廓</c>
+<l>boundary (Regions, RegionBorder, 'inner')</l>
+<l>dilation_rectangle1 (RegionBorder, RegionDilation, 5, 5)</l>
+<l>reduce_domain (Image, RegionDilation, ImageReduced)</l>
+<l>edges_sub_pix (GrayImage, Edges, 'canny', 1, 20, 40)</l>
+<l>select_shape_xld (Edges, SelectedXLD, 'contlength', 'and', 22.98, 1000)</l>
+<c> </c>
+<c>*分割轮廓</c>
+<l>segment_contours_xld (SelectedXLD, ContoursSplit, 'lines_circles', 6, 4, 4)</l>
+<l>count_obj (ContoursSplit, Number)</l>
+<l>dev_set_line_width (2)</l>
+<l>set_display_font (WindowHandle, 16, 'mono', 'true', 'false')</l>
+<l>k:=1</l>
+<l>c:=1</l>
+<l>line_row:=[]</l>
+<l>line_col:=[]</l>
+<l>circle_row:=[]</l>
+<l>circle_col:=[]</l>
+<c> </c>
+<c>*拟合测量</c>
+<l>for i:=1 to Number by 1</l>
+<l>   select_obj (ContoursSplit, ObjectSelected, i)</l>
+<c>   *得到轮廓的'cont_approx'属性，-1时为直线，1时为圆</c>
+<l>   get_contour_global_attrib_xld (ObjectSelected, 'cont_approx', Attrib)</l>
+<l>   if(Attrib == -1)</l>
+<c>       *直线拟合</c>
+<l>       fit_line_contour_xld (ObjectSelected, 'tukey', -1, 0, 5, 2, RowBegin, ColBegin, RowEnd, ColEnd, Nr, Nc, Dist)</l>
+<c>       *生成多边形亚像素轮廓</c>
+<l>       gen_contour_polygon_xld (line, [RowBegin,RowEnd], [ColBegin,ColEnd]) </l>
+<l>       distance_pp (RowBegin, ColBegin, RowEnd, ColEnd, Distance)</l>
+<l>       disp_message (WindowHandle, 'L'+k, 'image', (RowBegin+RowEnd)/2, (ColBegin+ColEnd)/2, 'black', 'false')</l>
+<l>       disp_message (WindowHandle, 'L'+k+'='+Distance, 'window', 20*i, 10, 'white', 'false')</l>
+<l>       k:=k+1</l>
+<l>       line_row:=[line_row,RowBegin,RowEnd]</l>
+<l>       line_col:=[line_col,ColBegin,ColEnd]</l>
+<l>   else</l>
+<c>       *拟合圆</c>
+<l>       fit_circle_contour_xld (ObjectSelected, 'algebraic', -1, 0, 0, 3, 2, Row1, Column1, Radius, StartPhi, EndPhi, PointOrder)</l>
+<l>       gen_circle_contour_xld (ContCircle, Row1, Column1, Radius, 0, 6.28318, 'positive', 1)</l>
+<l>       disp_message (WindowHandle, 'C'+c, 'image', Row1-2*Radius, Column1, 'black', 'false')</l>
+<l>       disp_message (WindowHandle, 'C'+c+'='+Radius, 'window', 20*i, 10, 'white', 'false')</l>
+<l>       c:=c+1</l>
+<l>       circle_row:=[circle_row,Row1]</l>
+<l>       circle_col:=[circle_col,Column1]</l>
+<l>   endif</l>
+<l>   stop()</l>
+<l>endfor</l>
+<l>distance_pp (line_row[6],line_col[6],line_row[9], line_col[9], Distance0)</l>
+<l>disp_message (WindowHandle, 'L4L5'+'='+Distance0, 'window', 240, 10, 'green', 'false')</l>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

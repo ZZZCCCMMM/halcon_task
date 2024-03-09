@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image(Image,'C:/Users/FBIzhu/Desktop/任务/易拉罐/素材/2.png')</l>
+<l>dev_close_window ()</l>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
+<l>emphasize (Image, ImageEmphasize, 20, 20, 15)</l>
+<l>threshold (ImageEmphasize, Region, 0, 125)</l>
+<l>connection (Region, Region)</l>
+<l>select_shape (Region, SelectedRegions, 'area', 'and', 15.83, 400)</l>
+<l>union1 (SelectedRegions, RegionUnion)</l>
+<c></c>
+<l>dot :=[200,100,250,575,250,100,295,560]</l>
+<l>training1:=['2','0','1','8','0','9','2','7','B']</l>
+<l>training2:=['0','6',':','2','5','0','7','6','4']</l>
+<l>FontName := 'Number'</l>
+<l>traingfilename :=FontName + '.trf'</l>
+<l>down_traingfilename :=FontName + '.trf'</l>
+<c></c>
+<l>clip_region (RegionUnion, RegionClipped, 200, 100, 250, 575)</l>
+<l>closing_circle (RegionClipped, RegionClosing,4)</l>
+<c></c>
+<l>connection (RegionClosing, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions1, 'area', 'and', 112, 99999)</l>
+<l>shape_trans (SelectedRegions1, RegionTrans, 'rectangle1')</l>
+<c></c>
+<l>partition_rectangle (SelectedRegions1, Partitioned, 46, 100)</l>
+<l>intersection (Partitioned, SelectedRegions1, characters)</l>
+<c></c>
+<l>closing_circle (characters, RegionClosing1, 4)</l>
+<l>sort_region (RegionClosing1, SortedRegions, 'character', 'true', 'row')</l>
+<l>area_center (SortedRegions, Null, Row1, Column1)</l>
+<l>*delete_file (traingfilename)</l>
+<c></c>
+<l>dev_display (characters)</l>
+<l>for j := 0 to |training1|-1 by 1</l>
+<l>    select_obj (SortedRegions, ObjectSelected, j+1)</l>
+<l>    append_ocr_trainf (ObjectSelected, ImageEmphasize, training1[j], traingfilename)</l>
+<l>    set_tposition (WindowHandle, Row1[j]-80, Column1[j]-10)</l>
+<l>    write_string (WindowHandle, training1[j])</l>
+<l>endfor</l>
+<l>charnames :=uniq(sort(training1))</l>
+<l>create_ocr_class_mlp (8, 10, 'constant', 'default', charnames, 5, 'none', 10, 42, OCRHandle)</l>
+<l>trainf_ocr_class_mlp (OCRHandle, traingfilename, 200, 1, 0.01, Error, ErrorLog)</l>
+<l>write_ocr_class_mlp (OCRHandle, FontName)</l>
+<c></c>
+<c></c>
+<l>clip_region (RegionUnion, down_RegionClipped, 250, 100, 295, 560)</l>
+<l>closing_circle (down_RegionClipped, down_RegionClosing,4.5)</l>
+<l>connection (down_RegionClosing, down_ConnectedRegions)</l>
+<l>select_shape (down_ConnectedRegions, down_SelectedRegions1, 'area', 'and', 112, 99999)</l>
+<l>shape_trans (down_SelectedRegions1, down_RegionTrans, 'rectangle1')</l>
+<c></c>
+<l>partition_rectangle (down_SelectedRegions1, down_Partitioned, 46, 100)</l>
+<l>intersection (down_Partitioned, down_RegionClipped, down_characters)</l>
+<c></c>
+<l>closing_circle (down_characters, down_RegionClosing1, 3)</l>
+<l>sort_region (down_RegionClosing1, down_SortedRegions, 'character', 'true', 'row')</l>
+<l>area_center (down_SortedRegions, Null, down_Row, down_Column)</l>
+<c></c>
+<l>dev_display (down_characters)</l>
+<l>for a := 0 to |training2|-1 by 1</l>
+<l>    select_obj (down_SortedRegions, down_ObjectSelected, a+1)</l>
+<l>    append_ocr_trainf (down_ObjectSelected, ImageEmphasize, training2[a], traingfilename)</l>
+<l>    set_tposition (WindowHandle, down_Row[a]-80, down_Column[a]-10)</l>
+<l>    write_string (WindowHandle, training2[a])</l>
+<l>endfor</l>
+<l>charnames :=uniq(sort(training2))</l>
+<l>create_ocr_class_mlp (8, 10, 'constant', 'default', charnames, 5, 'none', 10, 42, OCRHandle)</l>
+<l>trainf_ocr_class_mlp (OCRHandle, traingfilename, 200, 1, 0.01, Error, ErrorLog)</l>
+<l>write_ocr_class_mlp (OCRHandle, FontName)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

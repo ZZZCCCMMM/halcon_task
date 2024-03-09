@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_close_window ()</l>
+<l>dev_update_off ()</l>
+<c>* ****</c>
+<c>* step: acquire image</c>
+<c>* ****</c>
+<l>read_image (Image, 'D:/桌面/任务/任务五/图片/2.png')</l>
+<l>emphasize (Image, ImageEmphasize, 10, 10, 3)</l>
+<l>rgb1_to_gray (ImageEmphasize, GrayImage)</l>
+<l>threshold (GrayImage, Region, 0, 243)</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_clear_window ()</l>
+<l>dev_open_window (0, 0, Width, Height, 'black', WindowHandle)</l>
+<l>dev_display (Image)</l>
+<l>L1:=[]</l>
+<l>ResultText:=[]</l>
+<c></c>
+<c></c>
+<l>    connection (Region, ConnectedRegions)</l>
+<l>    sort_region (ConnectedRegions, SortedRegions, 'first_point', 'true', 'row')</l>
+<l>    count_obj (SortedRegions, Number)</l>
+<l>    for j := 1 to Number by 1</l>
+<l>        select_obj (SortedRegions, ObjectSelected, j)</l>
+<l>        smallest_rectangle1 (ObjectSelected, ROI_Row1, ROI_Column1, ROI_Row2, ROI_Column2)</l>
+<l>        crop_rectangle1 (GrayImage, ImagePart, ROI_Row1-2, ROI_Column1-2, ROI_Row2+2, ROI_Column2+2)</l>
+<l>        edges_sub_pix (ImagePart, Edges, 'lanser2', 0.5, 40, 90)        </l>
+<l>        segment_contours_xld (Edges, ContoursSplit, 'lines_circles', 6, 4, 4)</l>
+<l>        sort_contours_xld (ContoursSplit, SortedContours, 'upper_left', 'true', 'column')      </l>
+<c>* ****</c>
+<c>* step: perform fitting</c>
+<c>* ****</c>
+<c></c>
+<c>        </c>
+<l>        count_obj (SortedContours, NumSegments)</l>
+<c>       </c>
+<l>        NumCircles := 0</l>
+<l>        NumLines := 0</l>
+<l>        for i := 1 to NumSegments by 1</l>
+<c>    </c>
+<l>            select_obj (SortedContours, SingleSegment, i)</l>
+<l>            get_contour_global_attrib_xld (SingleSegment, 'cont_approx', Attrib)</l>
+<c>    </c>
+<l>            if (Attrib == 1 and i#13)</l>
+<l>                NumCircles := NumCircles + 1</l>
+<l>                fit_circle_contour_xld (SingleSegment, 'atukey', -1, 2, 0, 5, 2, Row, Column, Radius, StartPhi, EndPhi, PointOrder)</l>
+<l>                gen_ellipse_contour_xld (ContEllipse, Row, Column, 0, Radius, Radius, 0, rad(360), 'positive', 1.0)</l>
+<c>           </c>
+<l>               ResultText:=[ResultText,Radius]</l>
+<c>               </c>
+<c>               </c>
+<l>            else</l>
+<l>            NumLines := NumLines + 1</l>
+<l>            fit_line_contour_xld (SingleSegment, 'tukey', -1, 0, 5, 2, RowBegin, ColBegin, RowEnd, ColEnd, Nr, Nc, Dist)</l>
+<l>            gen_contour_polygon_xld (Line, [RowBegin,RowEnd], [ColBegin,ColEnd])</l>
+<c>            </c>
+<l>            distance_pp (RowBegin, ColBegin, RowEnd, ColEnd, Length)</l>
+<c>            </c>
+<l>            L1:=[L1,Length]</l>
+<c></c>
+<l>            endif</l>
+<l>            tuple_sum (L1, Sum)</l>
+<l>            if(j==2)</l>
+<l>                for J := 0 to |ResultText|-1 by 1</l>
+<l>                    disp_message (WindowHandle, 'C' + NumCircles + ': radius = ' +ResultText[J], 'window', (ROI_Row1+ROI_Row2)/2, (ROI_Column1+ROI_Column2)/2, 'black', 'true')</l>
+<l>            endfor</l>
+<l>            else</l>
+<l>                disp_message (WindowHandle, '边长:'+Sum, 'window', (ROI_Row1+ROI_Row2)/2, (ROI_Column1+ROI_Column2)/2, 'black', 'true')</l>
+<l>            endif</l>
+<l>           endfor</l>
+<c>        </c>
+<c>        </c>
+<c>       </c>
+<l>    endfor</l>
+<c>        </c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

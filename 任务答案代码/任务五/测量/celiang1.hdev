@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/任务五/测量.bmp')</l>
+<l>get_image_size (Image, W, H)</l>
+<l>dev_open_window (0, 0, W, H, 'black', WindowHandle)</l>
+<l>try</l>
+<l>    get_image_size (Image, Width, Height)</l>
+<l>    auto_threshold (Image, Regions, 5)</l>
+<l>    fill_up (Regions, RegionFillUp)</l>
+<l>    select_shape_std (RegionFillUp, SelectedRegions1, 'max_area', 70)</l>
+<l>    reduce_domain (Image, SelectedRegions1, ImageReduced1)</l>
+<l>    threshold (ImageReduced1, Region2, 0, 150)</l>
+<l>    connection (Region2, ConnectedRegions5)</l>
+<l>    fill_up (ConnectedRegions5, RegionFillUp2)</l>
+<l>    select_shape_std (RegionFillUp2, SelectedRegions4, 'max_area', 70)</l>
+<l>    opening_circle (SelectedRegions4, RegionOpening, 10)</l>
+<l>    gen_contour_region_xld (RegionOpening, Contours, 'border')</l>
+<l>    fit_circle_contour_xld (Contours, 'atukey', -1, 0, 0, 3, 2, CircleCenterRow, CircleCenterColumn, CircleCenterRadius, StartPhi1, EndPhi1, PointOrder1)</l>
+<l>    gen_circle_contour_xld (ContCircle1, CircleCenterRow, CircleCenterColumn, CircleCenterRadius, 0, 6.28318, 'positive', 1)</l>
+<l>    gen_region_contour_xld (Contours, Region3, 'margin')</l>
+<l>    gen_region_contour_xld (ContCircle1, Region, 'margin')</l>
+<c>    </c>
+<l>    shape_trans (RegionOpening, RegionTrans, 'rectangle2')</l>
+<l>    erosion_circle (RegionTrans, RegionErosion, 30)</l>
+<l>    difference (Region3, RegionErosion, RegionDifference)</l>
+<l>    connection (RegionDifference, ConnectedRegions4)</l>
+<l>    select_shape_std (ConnectedRegions4, SelectedRegions3, 'max_area', 70)</l>
+<l>    dilation_circle (SelectedRegions3, RegionDilation, 5)</l>
+<l>    skeleton (RegionDilation, Skeleton1)</l>
+<l>    gen_contours_skeleton_xld (Skeleton1, Contours2, 10, 'filter')</l>
+<l>    fit_line_contour_xld (Contours2, 'tukey', -1, 0, 5, 2.0, RowBegin, ColBegin, RowEnd, ColEnd, Nr, Nc, Dist)</l>
+<l>    gen_region_line (RegionLines, RowBegin, ColBegin, RowEnd, ColEnd)</l>
+<l>    intersection (RegionLines, Region, RegionIntersection2)</l>
+<l>    connection (RegionIntersection2, ConnectedRegions1)</l>
+<c>    * 直线检测的起始点与终止点</c>
+<l>    area_center (ConnectedRegions1, Area4, LineRegionRow, LineRegionColumn)</l>
+<c>    **卡尺精定位部分</c>
+<l>    create_metrology_model (MetrologyHandle)</l>
+<l>    set_metrology_model_image_size (MetrologyHandle, Width, Height)</l>
+<l>    add_metrology_object_circle_measure (MetrologyHandle, CircleCenterRow, CircleCenterColumn, CircleCenterRadius, 10, 5, 1.5, 20, ['measure_transition','min_score'], ['positive',0.5], MetrologyCircleIndex)</l>
+<l>    apply_metrology_model (Image, MetrologyHandle)</l>
+<l>    get_metrology_object_result (MetrologyHandle, MetrologyCircleIndex, 'all', 'result_type', 'all_param', CircleParameter)   </l>
+<l>    add_metrology_object_line_measure (MetrologyHandle, LineRegionRow[0], LineRegionColumn[0], LineRegionRow[1], LineRegionColumn[1], 10, 5, 1, 20, ['measure_transition','min_score'], ['uniform',0.5], MetrologyLineIndex)   </l>
+<l>    apply_metrology_model (Image, MetrologyHandle)</l>
+<l>    get_metrology_object_result (MetrologyHandle, MetrologyLineIndex, 'all', 'result_type', 'all_param', LineParameter)    </l>
+<c>    ** 显示信息</c>
+<l>    get_metrology_object_result_contour (MetrologyCircleContour, MetrologyHandle, MetrologyCircleIndex, 'all', 1.5)</l>
+<l>    get_metrology_object_result_contour (MetrologyLineContour, MetrologyHandle, MetrologyLineIndex, 'all', 1.5)</l>
+<l>    gen_region_line (RegionLinesH, LineParameter[0], LineParameter[1], LineParameter[2], LineParameter[3])</l>
+<c>    * *** Output ****</c>
+<l>    if (LineParameter[1]&lt;LineParameter[3])</l>
+<l>        angle_lx (LineParameter[0], LineParameter[1], LineParameter[2], LineParameter[3], Angle)</l>
+<l>    else</l>
+<l>        angle_lx (LineParameter[2], LineParameter[3], LineParameter[0], LineParameter[1], Angle)</l>
+<l>    endif</l>
+<l>    gen_region_line (RegionLinesX, Height/2, 0, Height/2, Width)</l>
+<l>    gen_region_line (RegionLinesY, 0, Width/2, Height, Width/2)</l>
+<l>    gen_cross_contour_xld (Cross, CircleParameter[0], CircleParameter[1], 30, 1)   </l>
+<l>    get_metrology_object_measures (Contours1, MetrologyHandle, 'all', 'all', Row2, Column2)</l>
+<c>    **显示</c>
+<l>    tuple_rad (180, Rad)</l>
+<l>    gen_rectangle2 (Rectangle, CircleParameter[0], CircleParameter[1], Angle+Rad/2.0, 1.2*CircleParameter[2], 2)</l>
+<l>    intersection (Rectangle, RegionLines, RegionIntersection)</l>
+<l>    area_center (RegionIntersection, Area, Row, Column)</l>
+<l>    gen_region_line (RegionLines1, CircleParameter[0], CircleParameter[1], Row, Column)</l>
+<c></c>
+<l>    dev_display (Image)</l>
+<l>    dev_set_line_width (2)</l>
+<l>    dev_set_color ('red')</l>
+<l>    dev_display (Cross)</l>
+<l>    dev_display (MetrologyCircleContour)</l>
+<l>    dev_set_color ('cyan')</l>
+<l>    dev_display (MetrologyLineContour)</l>
+<l>    dev_set_color ('blue')</l>
+<l>    dev_display (RegionLines1)</l>
+<l>    disp_arrow (WindowHandle, CircleParameter[0], CircleParameter[1], Row, Column, 2)</l>
+<l>    dev_set_color ('green')</l>
+<l>    dev_display (Contours1)</l>
+<l>    dev_set_color ('yellow')</l>
+<l>    gen_cross_contour_xld (Cross1, Row2, Column2, 6, 0)   </l>
+<l>    disp_arrow (WindowHandle, CircleParameter[0], CircleParameter[1], Row, Column, 2)</l>
+<l>    tuple_deg (Angle + Rad/2.0, Deg)</l>
+<l>    if (Row&gt;CircleParameter[0])</l>
+<l>        ReturnDeg := Deg - 180</l>
+<l>    elseif(Row&lt;CircleParameter[0])</l>
+<l>        ReturnDeg := Deg</l>
+<l>    elseif (Row==CircleParameter[0] and Column&gt;CircleParameter[1])</l>
+<l>        ReturnDeg := 0</l>
+<l>    elseif (Row==CircleParameter[0] and Column&lt;CircleParameter[1])</l>
+<l>        ReturnDeg := 180</l>
+<l>    endif</l>
+<l>    DRow := CircleParameter[0] - Height/2</l>
+<l>    DColumn := CircleParameter[1] - Width/2</l>
+<c>    </c>
+<l>    disp_message (WindowHandle, 'DRow    := ' + DRow, 'window', 20, 20, 'black', 'true')</l>
+<l>    disp_message (WindowHandle, 'DColumn := ' + DColumn, 'window', 40, 20, 'black', 'true')</l>
+<l>    disp_message (WindowHandle, 'Angle   := ' + ReturnDeg, 'window', 60, 20, 'black', 'true')</l>
+<l>    clear_metrology_model (MetrologyHandle)</l>
+<l>    stop ()</l>
+<l>    catch (Exception)</l>
+<l>        dev_display (Image)</l>
+<l>        disp_message (WindowHandle, Exception, 'window', 20, 20, 'black', 'true')</l>
+<l>        disp_message (WindowHandle, 'NULL', 'window', 20, 20, 'black', 'true')</l>
+<l>        stop ()</l>
+<l>endtry</l>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

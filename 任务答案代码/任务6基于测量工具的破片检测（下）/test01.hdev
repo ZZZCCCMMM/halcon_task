@@ -1,0 +1,720 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c></c>
+<c></c>
+<c></c>
+<c>*机器视觉与图像处理课程</c>
+<c></c>
+<c></c>
+<l>read_image (Image, 'D:/桌面/任务/任务6基于测量工具的破片检测（下）/测试图3.png')</l>
+<l>rgb1_to_gray(Image, GrayImage)</l>
+<l>get_image_size(GrayImage, Width, Height)</l>
+<l>n:=8</l>
+<l>n_height:=Height/n</l>
+<l>n_half_height:=n_height/2</l>
+<l>Windows_Rows:=[n_half_height:n_half_height:Height]</l>
+<l>tuple_gen_const(|Windows_Rows|,Width/2-1,Windows_Cols)</l>
+<l>gen_rectangle2(Rects,Windows_Rows,Windows_Cols,gen_tuple_const(|Windows_Rows|,0), gen_tuple_const(|Windows_Rows|,Width/2),gen_tuple_const(|Windows_Rows|,n_half_height))</l>
+<c></c>
+<c></c>
+<l>MeasureRowStartS:=[]</l>
+<l>MeasureColStartS:=[]</l>
+<l>MeasureRowEndS:=[]</l>
+<l>MeasureColEndS:=[]</l>
+<c></c>
+<l>for i:=0 to |Windows_Rows|-1 by 1</l>
+<l>    LineRowStart:=Windows_Rows[i]</l>
+<l>    LineColStart:=0</l>
+<l>    LineRowEnd:=Windows_Rows[i]</l>
+<l>    LineColEnd:=Width-1    </l>
+<l>    ROIWidthLen:=n_height</l>
+<l>    Sigma:=1.7    </l>
+<l>    if (i=0)</l>
+<l>        NumEdges:=[]</l>
+<l>        for t:=0 to 128 by 1</l>
+<l>            Threshold:=t</l>
+<c></c>
+<l>            my_measure_pairs(GrayImage,Threshold,ROIWidthLen,Sigma,LineRowStart,LineColStart,LineRowEnd,LineColEnd,Width,Height,MeasureRowStart, MeasureColStart, MeasureRowEnd, MeasureColEnd)</l>
+<l>            NumEdges:=[NumEdges,|MeasureRowStart|]</l>
+<l>        endfor</l>
+<l>         tuple_find(NumEdges,1,Indices)</l>
+<l>         mid_threshold:=int(0.5*(Indices[0]+Indices[|Indices|-1]))</l>
+<l>        *tuple_find_first(NumEdges,1,mid_threshold)</l>
+<l>    endif</l>
+<l>    my_measure_pairs(GrayImage,mid_threshold,ROIWidthLen,Sigma,LineRowStart,LineColStart,LineRowEnd,LineColEnd,Width,Height,MeasureRowStart, MeasureColStart, MeasureRowEnd, MeasureColEnd)</l>
+<l>    if (MeasureRowStart#[] and MeasureRowEnd#[])</l>
+<l>            MeasureRowStartS:=[MeasureRowStartS,MeasureRowStart[0]]</l>
+<l>            MeasureColStartS:=[MeasureColStartS,MeasureColStart[0]]</l>
+<l>            MeasureRowEndS:=[MeasureRowEndS,MeasureRowEnd[|MeasureRowEnd|-1]]</l>
+<l>            MeasureColEndS:=[MeasureColEndS,MeasureColEnd[|MeasureColEnd|-1]]</l>
+<l>    endif</l>
+<c></c>
+<c></c>
+<l>endfor</l>
+<l>gen_cross_contour_xld(Cross1, MeasureRowStartS, MeasureColStartS, 6, 0.785398)</l>
+<l>gen_cross_contour_xld(Cross2, MeasureRowEndS, MeasureColEndS, 6, 0.785398)</l>
+<c></c>
+<c></c>
+<c></c>
+<l>mode:='V'</l>
+<l>find_err_min_2_points (MeasureColStartS, MeasureRowStartS, mode, Width, x1_left, y1_left, x2_left, y2_left)</l>
+<l>find_err_min_2_points (MeasureColEndS, MeasureRowEndS, mode, Width, x1_right, y1_right, x2_right, y2_right)</l>
+<l>gen_region_line(RegionLines_left, y1_left, x1_left, y2_left,x2_left)</l>
+<l>gen_region_line(RegionLines_right,y1_right, x1_right,  y2_right,x2_right)</l>
+<c></c>
+<c></c>
+<l>n:=8</l>
+<l>n_height:=Height/n</l>
+<l>n_half_height:=n_height/2</l>
+<l>Windows_Rows:=[n_half_height:n_half_height:Height]</l>
+<l>tuple_gen_const(|Windows_Rows|,Width/2-1,Windows_Cols)</l>
+<l>gen_rectangle2(Rects,Windows_Cols,Windows_Rows, gen_tuple_const(|Windows_Rows|,0),gen_tuple_const(|Windows_Rows|,n_half_height),gen_tuple_const(|Windows_Rows|,Width/2))</l>
+<c></c>
+<c></c>
+<l>MeasureRowStartS:=[]</l>
+<l>MeasureColStartS:=[]</l>
+<l>MeasureRowEndS:=[]</l>
+<l>MeasureColEndS:=[]</l>
+<c></c>
+<l>for i:=0 to |Windows_Rows|-1 by 1</l>
+<l>    LineRowStart:=0</l>
+<l>    LineColStart:=Windows_Rows[i]</l>
+<l>    LineRowEnd:=Width-1  </l>
+<l>    LineColEnd:=Windows_Rows[i]</l>
+<l>    ROIWidthLen:=n_height</l>
+<l>    Sigma:=1.7    </l>
+<l>    if (i=0)</l>
+<l>        NumEdges:=[]</l>
+<l>        for t:=0 to 128 by 1</l>
+<l>            Threshold:=t</l>
+<c></c>
+<l>            my_measure_pairs(GrayImage,Threshold,ROIWidthLen,Sigma,LineRowStart,LineColStart,LineRowEnd,LineColEnd,Width,Height,MeasureRowStart, MeasureColStart, MeasureRowEnd, MeasureColEnd)</l>
+<l>            NumEdges:=[NumEdges,|MeasureRowStart|]</l>
+<l>        endfor</l>
+<l>        tuple_find(NumEdges,1,Indices)</l>
+<l>        mid_threshold:=int(0.5*(Indices[0]+Indices[|Indices|-1]))</l>
+<l>        *tuple_find_first(NumEdges,1,mid_threshold)        </l>
+<l>    endif</l>
+<l>    my_measure_pairs(GrayImage,mid_threshold,ROIWidthLen,Sigma,LineRowStart,LineColStart,LineRowEnd,LineColEnd,Width,Height,MeasureRowStart, MeasureColStart, MeasureRowEnd, MeasureColEnd)</l>
+<l>    if (MeasureRowStart#[] and MeasureRowEnd#[])</l>
+<l>            MeasureRowStartS:=[MeasureRowStartS,MeasureRowStart[0]]</l>
+<l>            MeasureColStartS:=[MeasureColStartS,MeasureColStart[0]]</l>
+<l>            MeasureRowEndS:=[MeasureRowEndS,MeasureRowEnd[|MeasureRowEnd|-1]]</l>
+<l>            MeasureColEndS:=[MeasureColEndS,MeasureColEnd[|MeasureColEnd|-1]]</l>
+<l>    endif</l>
+<c></c>
+<c></c>
+<l>endfor</l>
+<l>gen_cross_contour_xld(Cross, MeasureRowStartS, MeasureColStartS, 6, 0.785398)</l>
+<l>gen_cross_contour_xld(Cross, MeasureRowEndS, MeasureColEndS, 6, 0.785398)</l>
+<c></c>
+<l>mode:='H'</l>
+<l>find_err_min_2_points (MeasureColStartS, MeasureRowStartS, mode, Width, x1_top, y1_top, x2_top, y2_top)</l>
+<l>find_err_min_2_points (MeasureColEndS, MeasureRowEndS, mode, Width, x1_bottom, y1_bottom, x2_bottom, y2_bottom)</l>
+<l>gen_region_line(RegionLines_top,y1_top, x1_top, y2_top, x2_top)</l>
+<l>gen_region_line(RegionLines_bottom,y1_bottom, x1_bottom, y2_bottom, x2_bottom)</l>
+<c></c>
+<c></c>
+<c></c>
+<l>intersection_lines(y1_top, x1_top, y2_top, x2_top,y1_right, x1_right,  y2_right,x2_right,inter_row_tr,inter_col_tr,is_overlap)</l>
+<l>intersection_lines(y1_right, x1_right,  y2_right,x2_right,y1_bottom, x1_bottom, y2_bottom, x2_bottom,inter_row_br,inter_col_br,is_overlap)</l>
+<l>intersection_lines(y1_bottom, x1_bottom, y2_bottom, x2_bottom,y1_left, x1_left, y2_left,x2_left,inter_row_bl,inter_col_bl,is_overlap)</l>
+<l>intersection_lines(y1_left, x1_left, y2_left,x2_left,y1_top, x1_top, y2_top, x2_top,inter_row_tl,inter_col_tl,is_overlap)</l>
+<l>gen_region_line(RegionLines,[inter_row_tl,inter_row_bl,inter_row_br,inter_row_tr],[inter_col_tl,inter_col_bl,inter_col_br,inter_col_tr],[inter_row_bl,inter_row_br,inter_row_tr,inter_row_tl],[inter_col_bl,inter_col_br,inter_col_tr,inter_col_tl])</l>
+<c></c>
+<l>dev_display(GrayImage)</l>
+<l>dev_display(RegionLines)</l>
+<l>gen_cross_contour_xld(Cross, inter_row_tr,inter_col_tr, 6, 0.785398)</l>
+<c as_id="measure1d" as_name="Measure 01" as_grp="[1,1]" as_ord="1">* Measure 01: Code generated by Measure 01</c>
+<c as_id="measure1d" as_name="Measure 01" as_grp="[2,1]" as_ord="1">* Measure 01: Prepare measurement</c>
+<l as_id="measure1d" as_name="Measure 01" as_grp="[2,1]" as_ord="2">AmplitudeThreshold := 95</l>
+<l as_id="measure1d" as_name="Measure 01" as_grp="[2,1]" as_ord="3">RoiWidthLen2 := 0.5</l>
+<l as_id="measure1d" as_name="Measure 01" as_grp="[2,1]" as_ord="4">set_system ('int_zooming', 'true')</l>
+<c as_id="measure1d" as_name="Measure 01" as_grp="[2,2]" as_ord="1">* Measure 01: Coordinates for line Measure 01 [0]</c>
+<l as_id="measure1d" as_name="Measure 01" as_grp="[2,2]" as_ord="2">* LineRowStart_Measure_01_0 := 46.1988</l>
+<l as_id="measure1d" as_name="Measure 01" as_grp="[2,2]" as_ord="3">* LineColumnStart_Measure_01_0 := 36.1567</l>
+<l as_id="measure1d" as_name="Measure 01" as_grp="[2,2]" as_ord="4">* LineRowEnd_Measure_01_0 := 1225.3</l>
+<l as_id="measure1d" as_name="Measure 01" as_grp="[2,2]" as_ord="5">* LineColumnEnd_Measure_01_0 := 1218.37</l>
+<l>LineRowStart_Measure_01_0 := inter_row_tl</l>
+<l>LineColumnStart_Measure_01_0 := inter_col_tl</l>
+<l>LineRowEnd_Measure_01_0 := inter_row_br</l>
+<l>LineColumnEnd_Measure_01_0 := inter_col_br</l>
+<l> cross_r:=[]</l>
+<l>cross_c:=[]</l>
+<l>concer_point (GrayImage, LineRowStart_Measure_01_0, LineRowEnd_Measure_01_0, LineColumnStart_Measure_01_0, LineColumnEnd_Measure_01_0, RoiWidthLen2, AmplitudeThreshold, right_row, right_column, left_row, left_column)</l>
+<l>gen_cross_contour_xld(Cross5, right_row,right_column, 6, 0.785398)</l>
+<l>gen_cross_contour_xld(Cross6, left_row,left_column, 6, 0.785398)</l>
+<l>gen_region_line(RegionLines,mean(right_row),mean(right_column),right_row[0],right_column[0])</l>
+<l>        intersection_lines(y1_top, x1_top, y2_top, x2_top,mean(right_row),mean(right_column),right_row[0],right_column[0],outer_row_r,outer_col_r,is_overlap)    </l>
+<l>        intersection_lines(mean(right_row),mean(right_column),right_row[0],right_column[0],y1_left, x1_left, y2_left,x2_left,outer_row_l,outer_col_l,is_overlap)</l>
+<l>        gen_cross_contour_xld(Cross3, outer_row_r,outer_col_r, 6, 0.785398) </l>
+<l>        gen_cross_contour_xld(Cross4, outer_row_l,outer_col_l, 6, 0.785398)</l>
+<l>        cross_r:=[cross_r,outer_row_r]</l>
+<l>        cross_c:=[cross_c,outer_col_r]</l>
+<l>        cross_r:=[cross_r,outer_row_l]</l>
+<l>        cross_c:=[cross_c,outer_col_l]</l>
+<l>        gen_region_line(RegionLines,mean(left_row),mean(left_column),left_row[0],left_column[0])</l>
+<l>        intersection_lines(y1_bottom, x1_bottom, y2_bottom, x2_bottom,mean(left_row),mean(left_column),left_row[0],left_column[0],outer_row_r,outer_col_r,is_overlap)    </l>
+<l>        intersection_lines(mean(left_row),mean(left_column),left_row[0],left_column[0],y1_right, x1_right,  y2_right,x2_right,outer_row_l,outer_col_l,is_overlap)</l>
+<l>        gen_cross_contour_xld(Cross3, outer_row_r,outer_col_r, 6, 0.785398) </l>
+<l>        gen_cross_contour_xld(Cross4, outer_row_l,outer_col_l, 6, 0.785398)</l>
+<l>        cross_r:=[cross_r,outer_row_r]</l>
+<l>        cross_c:=[cross_c,outer_col_r-1]</l>
+<l>        cross_r:=[cross_r,outer_row_l-1]</l>
+<l>        cross_c:=[cross_c,outer_col_l]</l>
+<l>* tuple_length(right_row,len)</l>
+<l>* for c := 1 to 2 by 1</l>
+<l>*     if (c==1)</l>
+<l>*                 create_matrix(len,1,right_row,y)</l>
+<l>* create_matrix(len,2,1,x)</l>
+<l>* set_value_matrix(x, [0:len-1], gen_tuple_const(len, 0),right_column)</l>
+<c>* XT 代表X的转置 inv(*)代表*的逆</c>
+<c>* x beta = y</c>
+<c>* xT x beta = xT y</c>
+<c>* beta = inv( xT x) xT y</c>
+<l>* mult_matrix(x,x,'ATB',xtx)</l>
+<l>* mult_matrix(x,y,'ATB',xty)</l>
+<l>* invert_matrix(xtx,'general', 0, invxtx)</l>
+<l>* mult_matrix(invxtx,xty,'AB', beta)</l>
+<l>* get_full_matrix(beta, Values)</l>
+<l>* Newy:=Values[0] * [10,800] + Values[1]</l>
+<l>* gen_contour_polygon_xld(Contour, Newy, [10,800])</l>
+<c></c>
+<l>* pre_axis_x:=right_row</l>
+<l>* pre_axis_y:=right_column</l>
+<c>   </c>
+<l>*    small_two (pre_axis_x, pre_axis_y, x0, y0, x1, y1)</l>
+<c>        </c>
+<c></c>
+<l>* pre_axis_x:=left_row</l>
+<l>* pre_axis_y:=left_column</l>
+<l>* small_two (pre_axis_x, pre_axis_y, x0, y0, x1, y1)</l>
+<l>* gen_region_line(RegionLines,y0,x0,y1,x1)</l>
+<l>*         intersection_lines(y1_bottom, x1_bottom, y2_bottom, x2_bottom,y0,x0,y1,x1,outer_row_r,outer_col_r,is_overlap)       </l>
+<l>*         intersection_lines(y0,x0,y1,x1,y1_right, x1_right,  y2_right,x2_right,outer_row_l,outer_col_l,is_overlap)</l>
+<l>*         gen_cross_contour_xld(Cross7, outer_row_r,outer_col_r+2, 6, 0.785398) </l>
+<l>*         gen_cross_contour_xld(Cross8, outer_row_l,outer_col_l, 6, 0.785398)</l>
+<c></c>
+<l>*     gen_cross_contour_xld(Cross10, cross_r, cross_c, 6, 0.785398)</l>
+<c></c>
+<l>*     else</l>
+<l>*                         create_matrix(len,1,left_row,y)</l>
+<l>* create_matrix(len,2,1,x)</l>
+<l>* set_value_matrix(x, [0:len-1], gen_tuple_const(len, 0),left_column)</l>
+<c>* XT 代表X的转置 inv(*)代表*的逆</c>
+<c>* x beta = y</c>
+<c>* xT x beta = xT y</c>
+<c>* beta = inv( xT x) xT y</c>
+<l>* mult_matrix(x,x,'ATB',xtx)</l>
+<l>* mult_matrix(x,y,'ATB',xty)</l>
+<l>* invert_matrix(xtx,'general', 0, invxtx)</l>
+<l>* mult_matrix(invxtx,xty,'AB', beta)</l>
+<l>* get_full_matrix(beta, Values)</l>
+<l>* Newy:=Values[0] * [10,800] + Values[1]</l>
+<l>* gen_contour_polygon_xld(Contour, Newy, [10,800])</l>
+<l>*         xi:=left_row</l>
+<l>*         yi:=left_column</l>
+<l>*         xiyi:=sum(xi*yi)</l>
+<l>*         nxmym:=|xi|*mean(xi)*mean(yi)</l>
+<l>*         xi2:=sum(xi*xi)</l>
+<l>*         nxm2:=|xi|*mean(xi)*mean(xi)</l>
+<l>*         k:=(xiyi-nxmym)*1.0/(xi2-nxm2)</l>
+<l>*         angle:=atan(k)</l>
+<l>*         b:=mean(yi)-k*mean(xi)</l>
+<l>*         errs:=abs(k*xi+b-yi)</l>
+<l>*         x0:=0</l>
+<l>*         y0:=k*x0+b</l>
+<l>*         x1:=-b/k</l>
+<l>*         y1:=0                </l>
+<l>*         gen_region_line(RegionLines1,y0,x0+1,y1,x1+2)</l>
+<l>*         intersection_lines(y1_bottom, x1_bottom, y2_bottom, x2_bottom,y0,x0+1,y1,x1,outer_row_bl,outer_col_bl,is_overlap)</l>
+<l>*         intersection_lines(y1_right, x1_right,y2_right,x2_right,y0,x0+1,y1,x1+2,outer_row_br,outer_col_br,is_overlap)</l>
+<l>*         gen_cross_contour_xld(Cross9, outer_row_bl,outer_col_bl+2, 6, 0.785398)</l>
+<l>*         gen_cross_contour_xld(Cross10, outer_row_br,outer_col_br, 6, 0.785398)</l>
+<l>*     endif</l>
+<c>    </c>
+<l>* endfor</l>
+<l>LineRowStart_Measure_01_0 := inter_row_tr</l>
+<l>LineColumnStart_Measure_01_0 := inter_col_tr</l>
+<l>LineRowEnd_Measure_01_0 := inter_row_bl</l>
+<l>LineColumnEnd_Measure_01_0 := inter_col_bl</l>
+<c></c>
+<l>concer_point (GrayImage, LineRowStart_Measure_01_0, LineRowEnd_Measure_01_0, LineColumnStart_Measure_01_0, LineColumnEnd_Measure_01_0, RoiWidthLen2, AmplitudeThreshold, right_row, right_column, left_row, left_column)</l>
+<l>gen_cross_contour_xld(Cross5, right_row,right_column, 6, 0.785398)</l>
+<l>gen_cross_contour_xld(Cross6, left_row,left_column, 6, 0.785398)</l>
+<l>* pre_axis_x:=right_row</l>
+<l>* pre_axis_y:=right_column</l>
+<l>* small_two_left (pre_axis_x, pre_axis_y, x0, y0, x1, y1)</l>
+<l>gen_region_line(RegionLines,mean(right_row),mean(right_column),right_row[0],right_column[0])</l>
+<l>        intersection_lines(y1_top, x1_top, y2_top, x2_top,mean(right_row),mean(right_column),right_row[0],right_column[0],outer_row_r,outer_col_r,is_overlap)    </l>
+<l>        intersection_lines(mean(right_row),mean(right_column),right_row[0],right_column[0],y1_right, x1_right,  y2_right,x2_right,outer_row_l,outer_col_l,is_overlap)</l>
+<l>        gen_cross_contour_xld(Cross3, outer_row_r,outer_col_r, 6, 0.785398) </l>
+<l>        gen_cross_contour_xld(Cross4, outer_row_l,outer_col_l, 6, 0.785398)</l>
+<l>        cross_r:=[cross_r,outer_row_r]</l>
+<l>        cross_c:=[cross_c,outer_col_r]</l>
+<l>        cross_r:=[cross_r,outer_row_l]</l>
+<l>        cross_c:=[cross_c,outer_col_l]</l>
+<l>* pre_axis_x:=left_row</l>
+<l>* pre_axis_y:=left_column</l>
+<l>* small_two_left (pre_axis_x, pre_axis_y, x0, y0, x1, y1)</l>
+<l>gen_region_line(RegionLines,mean(left_row),mean(left_column),left_row[0],left_column[0])</l>
+<l>        intersection_lines(y1_bottom, x1_bottom, y2_bottom, x2_bottom,mean(left_row),mean(left_column),left_row[0],left_column[0],outer_row_r,outer_col_r,is_overlap) </l>
+<l>        intersection_lines(mean(left_row),mean(left_column),left_row[0],left_column[0],y1_left, x1_left, y2_left,x2_left,outer_row_l,outer_col_l,is_overlap)</l>
+<l>        gen_cross_contour_xld(Cross3, outer_row_r,outer_col_r, 6, 0.785398) </l>
+<l>        gen_cross_contour_xld(Cross4, outer_row_l,outer_col_l, 6, 0.785398)</l>
+<l>        cross_r:=[cross_r,outer_row_r]</l>
+<l>        cross_c:=[cross_c,outer_col_r]</l>
+<l>        cross_r:=[cross_r,outer_row_l]</l>
+<l>        cross_c:=[cross_c,outer_col_l]</l>
+<l>        gen_region_line(line,[cross_r[0],cross_r[1],cross_r[7],cross_r[6],cross_r[2],cross_r[3],cross_r[5],cross_r[4]],[cross_c[0],cross_c[1],cross_c[7],cross_c[6],cross_c[2],cross_c[3],cross_c[5],cross_c[4]],[cross_r[1],cross_r[7],cross_r[6],cross_r[2],cross_r[3],cross_r[5],cross_r[4],cross_r[0]],[cross_c[1],cross_c[7],cross_c[6],cross_c[2],cross_c[3],cross_c[5],cross_c[4],cross_c[0]])</l>
+<l>* tuple_length(right_row,len)</l>
+<l>* for d := 1 to 2 by 1</l>
+<l>*     if (d==1)</l>
+<l>*         create_matrix(len,1,right_row,y)</l>
+<l>* create_matrix(len,2,1,x)</l>
+<l>* set_value_matrix(x, [0:len-1], gen_tuple_const(len, 0),right_column)</l>
+<c>* XT 代表X的转置 inv(*)代表*的逆</c>
+<c>* x beta = y</c>
+<c>* xT x beta = xT y</c>
+<c>* beta = inv( xT x) xT y</c>
+<l>* mult_matrix(x,x,'ATB',xtx)</l>
+<l>* mult_matrix(x,y,'ATB',xty)</l>
+<l>* invert_matrix(xtx,'general', 0, invxtx)</l>
+<l>* mult_matrix(invxtx,xty,'AB', beta)</l>
+<l>* get_full_matrix(beta, Values)</l>
+<l>* Newy:=Values[0] * [10,800] + Values[1]</l>
+<l>* gen_contour_polygon_xld(Contour, Newy, [10,800])</l>
+<l>* xi:=right_row</l>
+<l>*         yi:=right_column</l>
+<l>*         xiyi:=sum(xi*yi)</l>
+<l>*         nxmym:=|xi|*mean(xi)*mean(yi)</l>
+<l>*         xi2:=sum(xi*xi)</l>
+<l>*         nxm2:=|xi|*mean(xi)*mean(xi)</l>
+<l>*         k:=(xiyi-nxmym)*1.0/(xi2-nxm2)</l>
+<l>*         angle:=atan(k)</l>
+<l>*         b:=mean(yi)-k*mean(xi)</l>
+<l>*         errs:=abs(k*xi+b-yi)</l>
+<l>*         x0:=0</l>
+<l>*         y0:=k*x0+b</l>
+<l>*         x1:=-b/k</l>
+<l>*         y1:=0</l>
+<l>*         gen_region_line(RegionLines,y0,x0,y1,x1)</l>
+<l>*         intersection_lines(y1_top, x1_top, y2_top, x2_top,y0,x0,y1,x1,outer_row_tr,outer_col_tr,is_overlap)</l>
+<l>*         intersection_lines(y1_left, x1_left, y2_left,x2_left,y0,x0,y1,x1,outer_row_tl,outer_col_tl,is_overlap)</l>
+<l>*         gen_cross_contour_xld(Cross7, outer_row_tr,outer_col_tr, 6, 0.785398)</l>
+<l>*         gen_cross_contour_xld(Cross8, outer_row_tl,outer_col_tl, 6, 0.785398)</l>
+<l>*         gen_region_line(RegionLines,y0,x0,y1,x1)</l>
+<l>*         intersection_lines(y1_top, x1_top, y2_top, x2_top,y0,x0,y1,x1,outer_row_tr,outer_col_tr,is_overlap)</l>
+<l>*         intersection_lines(y1_left, x1_left, y2_left,x2_left,y0,x0,y1,x1,outer_row_tl,outer_col_tl,is_overlap)</l>
+<l>*         gen_cross_contour_xld(Cross7, outer_row_tr,outer_col_tr, 6, 0.785398)</l>
+<l>*         gen_cross_contour_xld(Cross8, outer_row_tl,outer_col_tl, 6, 0.785398)</l>
+<l>*     else</l>
+<l>*                                 create_matrix(len,1,left_row,y)</l>
+<l>* create_matrix(len,2,1,x)</l>
+<l>* set_value_matrix(x, [0:len-1], gen_tuple_const(len, 0),left_column)</l>
+<c>* XT 代表X的转置 inv(*)代表*的逆</c>
+<c>* x beta = y</c>
+<c>* xT x beta = xT y</c>
+<c>* beta = inv( xT x) xT y</c>
+<l>* mult_matrix(x,x,'ATB',xtx)</l>
+<l>* mult_matrix(x,y,'ATB',xty)</l>
+<l>* invert_matrix(xtx,'general', 0, invxtx)</l>
+<l>* mult_matrix(invxtx,xty,'AB', beta)</l>
+<l>* get_full_matrix(beta, Values)</l>
+<l>* Newy:=Values[0] * [10,800] + Values[1]</l>
+<l>* gen_contour_polygon_xld(Contour, Newy, [10,800])</l>
+<c></c>
+<l>*         xi:=left_row</l>
+<l>*         yi:=left_column</l>
+<l>*         xiyi:=sum(xi*yi)</l>
+<l>*         nxmym:=|xi|*mean(xi)*mean(yi)</l>
+<l>*         xi2:=sum(xi*xi)</l>
+<l>*         nxm2:=|xi|*mean(xi)*mean(xi)</l>
+<l>*         k:=(xiyi-nxmym)*1.0/(xi2-nxm2)</l>
+<l>*         angle:=atan(k)</l>
+<l>*         b:=mean(yi)-k*mean(xi)</l>
+<l>*         errs:=abs(k*xi+b-yi)</l>
+<l>*         x0:=0</l>
+<l>*         y0:=k*x0+b</l>
+<l>*         x1:=-b/k</l>
+<l>*         y1:=0                </l>
+<l>*         gen_region_line(RegionLines1,y0,x0,y1,x1)</l>
+<l>*         intersection_lines(y1_bottom, x1_bottom, y2_bottom, x2_bottom,y0,x0,y1,x1,outer_row_bl,outer_col_bl,is_overlap)</l>
+<l>*         intersection_lines(y1_right, x1_right,y2_right,x2_right,y0,x0,y1,x1,outer_row_br,outer_col_br,is_overlap)</l>
+<l>*         gen_cross_contour_xld(Cross9, outer_row_bl,outer_col_bl, 6, 0.785398)</l>
+<l>*         gen_cross_contour_xld(Cross10, outer_row_br,outer_col_br, 6, 0.785398)</l>
+<l>*     endif</l>
+<c>    </c>
+<l>* endfor</l>
+<l>* dev_display(GrayImage)</l>
+<l>* dev_display(RegionLines)</l>
+<c></c>
+<c></c>
+<c></c>
+<c>*最小二乘法：</c>
+<l>* xi:=MeasureRowStartS</l>
+<l>* yi:=MeasureColStartS</l>
+<l>* xiyi:=sum(xi*yi)</l>
+<l>* nxmym:=|xi|*mean(xi)*mean(yi)</l>
+<l>* xi2:=sum(xi*xi)</l>
+<l>* nxm2:=|xi|*mean(xi)*mean(xi)</l>
+<l>* k:=(xiyi-nxmym)*1.0/(xi2-nxm2)</l>
+<l>* angle:=atan(k)</l>
+<l>* b:=mean(yi)-k*mean(xi)</l>
+<l>* errs:=abs(k*xi+b-yi)</l>
+<l>* x0:=0</l>
+<l>* y0:=k*x0+b</l>
+<l>* x1:=-b/k</l>
+<l>* y1:=0</l>
+<l>* gen_region_line(RegionLines,y0,x0,y1,x1)</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="my_measure_pairs">
+<interface>
+<io>
+<par name="GrayImage" base_type="iconic" dimension="0"/>
+</io>
+<ic>
+<par name="Threshold" base_type="ctrl" dimension="0"/>
+<par name="ROIWidthLen" base_type="ctrl" dimension="0"/>
+<par name="Sigma" base_type="ctrl" dimension="0"/>
+<par name="LineRowStart" base_type="ctrl" dimension="0"/>
+<par name="LineColStart" base_type="ctrl" dimension="0"/>
+<par name="LineRowEnd" base_type="ctrl" dimension="0"/>
+<par name="LineColEnd" base_type="ctrl" dimension="0"/>
+<par name="Width" base_type="ctrl" dimension="0"/>
+<par name="Height" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="MeasureRowStart" base_type="ctrl" dimension="0"/>
+<par name="MeasureColStart" base_type="ctrl" dimension="0"/>
+<par name="MeasureRowEnd" base_type="ctrl" dimension="0"/>
+<par name="MeasureColEnd" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c>* Measure 01: Code generated by Measure 01</c>
+<c>* Measure 01: Prepare measurement</c>
+<l>AmplitudeThreshold := Threshold </l>
+<l>RoiWidthLen2 := ROIWidthLen</l>
+<l>Sigma:=Sigma</l>
+<l>set_system ('int_zooming', 'false')</l>
+<c>* Measure 01: Coordinates for line Measure 01 [0]</c>
+<l>LineRowStart_Measure_01_0 := LineRowStart</l>
+<l>LineColumnStart_Measure_01_0 := LineColStart</l>
+<l>LineRowEnd_Measure_01_0 := LineRowEnd</l>
+<l>LineColumnEnd_Measure_01_0 := LineColEnd</l>
+<c>* Measure 01: Convert coordinates to rectangle2 type</c>
+<l>TmpCtrl_Row := 0.5*(LineRowStart_Measure_01_0+LineRowEnd_Measure_01_0)</l>
+<l>TmpCtrl_Column := 0.5*(LineColumnStart_Measure_01_0+LineColumnEnd_Measure_01_0)</l>
+<l>TmpCtrl_Dr := LineRowStart_Measure_01_0-LineRowEnd_Measure_01_0</l>
+<l>TmpCtrl_Dc := LineColumnEnd_Measure_01_0-LineColumnStart_Measure_01_0</l>
+<l>TmpCtrl_Phi := atan2(TmpCtrl_Dr, TmpCtrl_Dc)</l>
+<l>TmpCtrl_Len1 := 0.5*sqrt(TmpCtrl_Dr*TmpCtrl_Dr + TmpCtrl_Dc*TmpCtrl_Dc)</l>
+<l>TmpCtrl_Len2 := RoiWidthLen2</l>
+<c>* Measure 01: Create measure for line Measure 01 [0]</c>
+<c>* Measure 01: Attention: This assumes all images have the same size!</c>
+<l>gen_measure_rectangle2 (TmpCtrl_Row, TmpCtrl_Column, TmpCtrl_Phi, TmpCtrl_Len1, TmpCtrl_Len2, Width, Height, 'bilinear', MsrHandle_Measure_01_0)</l>
+<l>gen_rectangle2(Rect,TmpCtrl_Row, TmpCtrl_Column, TmpCtrl_Phi, TmpCtrl_Len1, TmpCtrl_Len2)</l>
+<c>* Measure 01: ***************************************************************</c>
+<c>* Measure 01: * The code which follows is to be executed once / measurement *</c>
+<c>* Measure 01: ***************************************************************</c>
+<c>* Measure 01: The image is assumed to be made available in the</c>
+<c>* Measure 01: variable last displayed in the graphics window</c>
+<l>copy_obj (GrayImage, Image, 1, 1)</l>
+<c>* Measure 01: Execute measurements</c>
+<l>measure_pairs (Image, MsrHandle_Measure_01_0, Sigma, AmplitudeThreshold, 'all_strongest', 'all', Row1_Measure_01_0, Column1_Measure_01_0, Amplitude1_Measure_01_0, Row2_Measure_01_0, Column2_Measure_01_0, Amplitude2_Measure_01_0, Width_Measure_01_0, Distance_Measure_01_0)</l>
+<c>* Measure 01: Do something with the results</c>
+<c>* Measure 01: Clear measure when done</c>
+<l>close_measure (MsrHandle_Measure_01_0)</l>
+<l>MeasureRowStart:=Row1_Measure_01_0</l>
+<l>MeasureColStart:=Column1_Measure_01_0</l>
+<l>MeasureRowEnd:=Row2_Measure_01_0</l>
+<l>MeasureColEnd:=Column2_Measure_01_0</l>
+<l>return ()</l>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="my_measure_pairs">
+<parameters>
+<parameter id="GrayImage"/>
+<parameter id="Height"/>
+<parameter id="LineColEnd"/>
+<parameter id="LineColStart"/>
+<parameter id="LineRowEnd"/>
+<parameter id="LineRowStart"/>
+<parameter id="MeasureColEnd"/>
+<parameter id="MeasureColStart"/>
+<parameter id="MeasureRowEnd"/>
+<parameter id="MeasureRowStart"/>
+<parameter id="ROIWidthLen"/>
+<parameter id="Sigma"/>
+<parameter id="Threshold"/>
+<parameter id="Width"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="find_err_min_2_points">
+<interface>
+<ic>
+<par name="MeasureColS" base_type="ctrl" dimension="0"/>
+<par name="MeasureRowS" base_type="ctrl" dimension="0"/>
+<par name="mode" base_type="ctrl" dimension="0"/>
+<par name="Width" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="x1" base_type="ctrl" dimension="0"/>
+<par name="y1" base_type="ctrl" dimension="0"/>
+<par name="x2" base_type="ctrl" dimension="0"/>
+<par name="y2" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>xi := MeasureColS</l>
+<l>yi := MeasureRowS</l>
+<l>errs:=[]</l>
+<l>first_point_indices:=[]</l>
+<l>second_point_indices:=[]</l>
+<c></c>
+<l>* num_rand:=|MeasureColS|*5</l>
+<l>* tuple_rand(num_rand,first_point_index)</l>
+<l>* first_point_index:=int(floor(|MeasureColS|*first_point_index))</l>
+<l>* tuple_rand(num_rand,second_point_index)</l>
+<l>* second_point_index:=int(floor(|MeasureColS|*second_point_index))</l>
+<l>tuple_gen_sequence(0,|MeasureColS|-1,1,first_point_index)</l>
+<l>second_point_index:=first_point_index</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<l>for i:=0 to |first_point_index|-1 by 1</l>
+<l>    for j:=0 to |second_point_index|-1 by 1</l>
+<l>        if(first_point_index[i]#second_point_index[j])</l>
+<l>            k:=(yi[second_point_index[j]]-yi[first_point_index[i]])/(xi[second_point_index[j]]-xi[first_point_index[i]])</l>
+<l>            b:=yi[first_point_index[i]]-k*xi[first_point_index[i]]</l>
+<l>            distance_pp(yi[second_point_index[j]],xi[second_point_index[j]],yi[first_point_index[i]],xi[first_point_index[i]],d)</l>
+<l>            if (mode='H')</l>
+<l>                err:=mean(1.0/(1+pow((k*xi+b-yi),2)))+d/Width</l>
+<l>            else</l>
+<c>                *y=1/(1+x)</c>
+<c>                </c>
+<c>                </c>
+<l>                err:=mean(1.0/(1+pow((yi-b)/k-xi,2)))+d/Width</l>
+<c>                </c>
+<c>                </c>
+<l>            endif</l>
+<c>             </c>
+<l>             errs:=[errs,err]</l>
+<c>            </c>
+<l>            first_point_indices:=[first_point_indices,first_point_index[i]]</l>
+<l>            second_point_indices:=[second_point_indices,second_point_index[j]]</l>
+<l>        endif</l>
+<l>    endfor</l>
+<l>endfor</l>
+<l>tuple_max(errs,err_max)</l>
+<l>tuple_find_first(errs,err_max,err_max_index)</l>
+<l>x1:=xi[first_point_indices[err_max_index]]</l>
+<l>y1:=yi[first_point_indices[err_max_index]]</l>
+<l>x2:=xi[second_point_indices[err_max_index]]</l>
+<l>y2:=yi[second_point_indices[err_max_index]]</l>
+<l>gen_region_line(RegionLines,y1,x1,y2,x2)</l>
+<l>return ()</l>
+</body>
+<docu id="find_err_min_2_points">
+<parameters>
+<parameter id="MeasureColS"/>
+<parameter id="MeasureRowS"/>
+<parameter id="Width"/>
+<parameter id="mode"/>
+<parameter id="x1"/>
+<parameter id="x2"/>
+<parameter id="y1"/>
+<parameter id="y2"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="concer_point">
+<interface>
+<io>
+<par name="Image" base_type="iconic" dimension="0"/>
+</io>
+<ic>
+<par name="LineRowStart_Measure_01_0" base_type="ctrl" dimension="0"/>
+<par name="LineRowEnd_Measure_01_0" base_type="ctrl" dimension="0"/>
+<par name="LineColumnStart_Measure_01_0" base_type="ctrl" dimension="0"/>
+<par name="LineColumnEnd_Measure_01_0" base_type="ctrl" dimension="0"/>
+<par name="RoiWidthLen2" base_type="ctrl" dimension="0"/>
+<par name="AmplitudeThreshold" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="right_row" base_type="ctrl" dimension="0"/>
+<par name="right_column" base_type="ctrl" dimension="0"/>
+<par name="left_row" base_type="ctrl" dimension="0"/>
+<par name="left_column" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l> right_row:=[]</l>
+<l>    right_column:=[]</l>
+<l>    left_row:=[]</l>
+<l>    left_column:=[]</l>
+<l>    i:=-5</l>
+<l>while (1)</l>
+<c>    </c>
+<l>    LineRowStart_Measure_01_01:=LineRowStart_Measure_01_0+i</l>
+<c>    </c>
+<l>    LineRowEnd_Measure_01_01:=LineRowEnd_Measure_01_0+i</l>
+<c>    </c>
+<l>    gen_region_line (RegionLines4,LineRowStart_Measure_01_01,LineColumnStart_Measure_01_0,LineRowEnd_Measure_01_01,LineColumnEnd_Measure_01_0)</l>
+<c>    * Measure 01: Convert coordinates to rectangle2 type</c>
+<l>    TmpCtrl_Row := 0.5*(LineRowStart_Measure_01_01+LineRowEnd_Measure_01_01)</l>
+<l>    TmpCtrl_Column := 0.5*(LineColumnStart_Measure_01_0+LineColumnEnd_Measure_01_0)</l>
+<l>    TmpCtrl_Dr := LineRowStart_Measure_01_01-LineRowEnd_Measure_01_01</l>
+<l>    TmpCtrl_Dc := LineColumnEnd_Measure_01_0-LineColumnStart_Measure_01_0</l>
+<l>    TmpCtrl_Phi := atan2(TmpCtrl_Dr, TmpCtrl_Dc)</l>
+<l>    TmpCtrl_Len1 := 0.5*sqrt(TmpCtrl_Dr*TmpCtrl_Dr + TmpCtrl_Dc*TmpCtrl_Dc)</l>
+<l>    TmpCtrl_Len2 := RoiWidthLen2</l>
+<c>    * Measure 01: Create measure for line Measure 01 [0]</c>
+<c>    * Measure 01: Attention: This assumes all images have the same size!</c>
+<l>    gen_measure_rectangle2 (TmpCtrl_Row, TmpCtrl_Column, TmpCtrl_Phi, TmpCtrl_Len1, TmpCtrl_Len2, 1280, 1280, 'bilinear', MsrHandle_Measure_01_0)</l>
+<c>    * Measure 01: Set fuzzy functions on measure objects</c>
+<l>    FuzzyThreshold := 0.66</l>
+<l>    create_funct_1d_pairs ([1569.21,1571.71,1576.71,1579.21], [0,1,1,0], TmpCtrl_FunctionSize)</l>
+<l>    set_fuzzy_measure (MsrHandle_Measure_01_0, 'size', TmpCtrl_FunctionSize)</l>
+<c>    * Measure 01: ***************************************************************</c>
+<c>    * Measure 01: * The code which follows is to be executed once / measurement *</c>
+<c>    * Measure 01: ***************************************************************</c>
+<c>    * Measure 01: Load image</c>
+<c>    </c>
+<c>    * Measure 01: Execute measurements</c>
+<l>    fuzzy_measure_pairs (Image, MsrHandle_Measure_01_0, 1.6, AmplitudeThreshold, 0.66, 'all', Row1_Measure_01_0, Column1_Measure_01_0, Amplitude1_Measure_01_0, Row2_Measure_01_0, Column2_Measure_01_0, Amplitude2_Measure_01_0, TmpCtrl_RowCenter, TmpCtrl_ColumnCenter, Score_Measure_01_0, Width_Measure_01_0, Distance_Measure_01_0)</l>
+<c>    * Measure 01: Do something with the results</c>
+<c>   </c>
+<l>    right_row:=[right_row,Row1_Measure_01_0]</l>
+<l>    right_column:=[right_column,Column1_Measure_01_0]</l>
+<l>    left_row:=[left_row,Row2_Measure_01_0]</l>
+<l>    left_column:=[left_column,Column2_Measure_01_0]</l>
+<l>    i:=i+0.5</l>
+<c></c>
+<l>    if (i==5)</l>
+<l>        break</l>
+<l>    endif</l>
+<l>endwhile</l>
+<c>    </c>
+<c></c>
+<c></c>
+<l>return ()</l>
+</body>
+<docu id="concer_point">
+<parameters>
+<parameter id="AmplitudeThreshold"/>
+<parameter id="Image"/>
+<parameter id="LineColumnEnd_Measure_01_0"/>
+<parameter id="LineColumnStart_Measure_01_0"/>
+<parameter id="LineRowEnd_Measure_01_0"/>
+<parameter id="LineRowStart_Measure_01_0"/>
+<parameter id="RoiWidthLen2"/>
+<parameter id="left_column"/>
+<parameter id="left_row"/>
+<parameter id="right_column"/>
+<parameter id="right_row"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="small_two">
+<interface>
+<ic>
+<par name="pre_axis_x" base_type="ctrl" dimension="0"/>
+<par name="pre_axis_y" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="x0" base_type="ctrl" dimension="0"/>
+<par name="y0" base_type="ctrl" dimension="0"/>
+<par name="x1" base_type="ctrl" dimension="0"/>
+<par name="y1" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<c></c>
+<l>        xi:=pre_axis_x</l>
+<l>        yi:=pre_axis_y</l>
+<l>        xiyi:=sum(xi*yi)</l>
+<l>        nxmym:=|xi|*mean(xi)*mean(yi)</l>
+<l>        xi2:=sum(xi*xi)</l>
+<l>        nxm2:=|xi|*mean(xi)*mean(xi)</l>
+<l>        k:=(xiyi-nxmym)*1.0/(xi2-nxm2)</l>
+<l>        angle:=atan(k)</l>
+<l>        b:=mean(yi)-k*mean(xi)</l>
+<l>        errs:=abs(k*xi+b-yi)</l>
+<l>        x0:=0</l>
+<l>        y0:=k*x0+b</l>
+<l>        x1:=-b/k</l>
+<l>        y1:=0</l>
+<c>        </c>
+<l>return ()</l>
+</body>
+<docu id="small_two">
+<parameters>
+<parameter id="pre_axis_x"/>
+<parameter id="pre_axis_y"/>
+<parameter id="x0"/>
+<parameter id="x1"/>
+<parameter id="y0"/>
+<parameter id="y1"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="small_two_left">
+<interface>
+<ic>
+<par name="pre_axis_x" base_type="ctrl" dimension="0"/>
+<par name="pre_axis_y" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="y0" base_type="ctrl" dimension="0"/>
+<par name="x0" base_type="ctrl" dimension="0"/>
+<par name="y1" base_type="ctrl" dimension="0"/>
+<par name="x1" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>       x1y1:=[]</l>
+<l>       x22:=[]</l>
+<l>        xi:=pre_axis_x</l>
+<l>        yi:=pre_axis_y</l>
+<l>        for i := 0 to |xi|-1 by 1</l>
+<l>            x3:=xi[i]-mean(xi)</l>
+<l>            y3:=yi[i]-mean(yi)</l>
+<l>            x1y1:=[x1y1,x3*y3]</l>
+<l>            x22:=[x22,x3*x3]</l>
+<l>        endfor</l>
+<l>        b:=sum(x1y1)/sum(x22)</l>
+<l>        k:=(mean(yi)-b)/mean(xi)</l>
+<l>        x0:=0</l>
+<l>        y0:=k*x0+b</l>
+<l>        x1:=-b/k</l>
+<l>        y1:=0</l>
+<c>        </c>
+<c>        </c>
+<l>return ()</l>
+</body>
+<docu id="small_two_left">
+<parameters>
+<parameter id="pre_axis_x"/>
+<parameter id="pre_axis_y"/>
+<parameter id="x0"/>
+<parameter id="x1"/>
+<parameter id="y0"/>
+<parameter id="y1"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_update_off ()</l>
+<l>create_class_mlp (6, 5, 3, 'softmax', 'normalization', 3, 42, MLPHandle)</l>
+<l>chars_tuple:=['ocircle','otriangle','oquadrilateral','opentagon']</l>
+<c>* Add training samples to the classifier</c>
+<l>FileNames := ['ocircle1', 'ocircle2', 'ocircle3',  'ocircle4',  'ocircle5', 'otriangle1', 'otriangle2', 'otriangle3', 'otriangle4','otriangle5','oquadrilateral1','oquadrilateral2','oquadrilateral3','oquadrilateral4','oquadrilateral5','opentagon1','opentagon2','opentagon3','opentagon4','opentagon5']</l>
+<l>ClassNamesImage :=  ['ocircle', 'ocircle', 'ocircle',  'ocircle',  'ocircle', 'otriangle', 'otriangle', 'otriangle', 'otriangle','otriangle','oquadrilateral','oquadrilateral','oquadrilateral','oquadrilateral','oquadrilateral','opentagon','opentagon','opentagon','opentagon','opentagon']</l>
+<l>for J := 0 to |FileNames| - 1 by 1</l>
+<l>    read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/任务4/挑的/bin/' + FileNames[J])</l>
+<l>    add_samples (Image, MLPHandle, ClassNamesImage[J])</l>
+<l>endfor</l>
+<l>train_class_mlp (MLPHandle, 200, 1, 0.01, Error, ErrorLog)</l>
+<c></c>
+<l>for a := 1 to 3 by 1</l>
+<l>    read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/任务4/test/'+a+'.png')</l>
+<l>    get_image_size (Image, Width, Height)</l>
+<l>dev_clear_window ()</l>
+<l>    dev_open_window (0, 0, 512, 512, 'black', WindowHandle1)</l>
+<c></c>
+<c>    * 'Classifiy Image'+J</c>
+<l>    decompose3 (Image, r, g, b)</l>
+<l>trans_from_rgb (r, g, b, h, s, v, 'hsv')</l>
+<c></c>
+<l>threshold (s, Regions, 58, 255)</l>
+<c></c>
+<l>connection (Regions, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 70, 50000)</l>
+<l>union1 (SelectedRegions, RegionUnion1)</l>
+<l>region_to_bin (RegionUnion1, BinImage, 255, 0, Width, Height)</l>
+<l>count_obj (SelectedRegions, Number)</l>
+<l>sort_region (SelectedRegions, SortedRegions, 'character', 'true', 'row')</l>
+<l>      dev_display (Image)</l>
+<l>    for i := 1 to Number by 1</l>
+<l>        select_obj (SortedRegions, ObjectSelected, i)</l>
+<l>        area_center (ObjectSelected, Area, Row, Column)</l>
+<l>        classify (ObjectSelected, MLPHandle, Classes)</l>
+<l>        disp_message (WindowHandle1, Classes, 'window', Row-50, Column+10, 'blue', 'false')</l>
+<l>    endfor</l>
+<l>    stop ()</l>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="segment">
+<interface>
+<io>
+<par name="Image" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="Regions" base_type="iconic" dimension="0"/>
+</oo>
+</interface>
+<body>
+<l>binary_threshold (Image, Region, 'max_separability', 'dark', UsedThreshold)</l>
+<l>connection (Region, ConnectedRegions)</l>
+<l>fill_up (ConnectedRegions, Regions)</l>
+<l>return ()</l>
+</body>
+<docu id="segment">
+<parameters>
+<parameter id="Image"/>
+<parameter id="Regions"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="get_features">
+<interface>
+<io>
+<par name="Region" base_type="iconic" dimension="0"/>
+</io>
+<oc>
+<par name="Features" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>select_obj (Region, SingleRegion, 1)</l>
+<l>circularity (SingleRegion, Circularity)</l>
+<l>roundness (SingleRegion, Distance, Sigma, Roundness, Sides)</l>
+<l>moments_region_central_invar (SingleRegion, PSI1, PSI2, PSI3, PSI4)</l>
+<l>Features := [Circularity,Roundness,PSI1,PSI2,PSI3,PSI4]</l>
+<l>return ()</l>
+</body>
+<docu id="get_features">
+<parameters>
+<parameter id="Features"/>
+<parameter id="Region"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="add_samples">
+<interface>
+<io>
+<par name="Regions" base_type="iconic" dimension="0"/>
+</io>
+<ic>
+<par name="MLPHandle" base_type="ctrl" dimension="0"/>
+<par name="Class" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<l>count_obj (Regions, Number)</l>
+<l>for J := 1 to Number by 1</l>
+<l>    select_obj (Regions, Region, J)</l>
+<l>get_features (Region, Features)</l>
+<l>    add_sample_class_mlp (MLPHandle, Features, Class)</l>
+<l>endfor</l>
+<l>return ()</l>
+</body>
+<docu id="add_samples">
+<parameters>
+<parameter id="Class"/>
+<parameter id="MLPHandle"/>
+<parameter id="Regions"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="classify">
+<interface>
+<io>
+<par name="Regions" base_type="iconic" dimension="0"/>
+</io>
+<ic>
+<par name="MLPHandle" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="Classes" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>count_obj (Regions, Number)</l>
+<l>Classes := []</l>
+<l>for J := 1 to Number by 1</l>
+<l>    select_obj (Regions, Region, J)</l>
+<l>get_features (Region, Features)</l>
+<l>    classify_class_mlp (MLPHandle, Features, 1, Class, Confidence)</l>
+<l>    Classes := [Classes,Class]</l>
+<l>endfor</l>
+<l>return ()</l>
+</body>
+<docu id="classify">
+<parameters>
+<parameter id="Classes"/>
+<parameter id="MLPHandle"/>
+<parameter id="Regions"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

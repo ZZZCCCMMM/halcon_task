@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>read_image (Image, 'C:/Users/FBIzhu/Desktop/任务/易拉罐/素材/2.png')</l>
+<l>emphasize (Image, ImageEmphasize, 20, 20, 15)</l>
+<l>threshold (ImageEmphasize, Region, 0, 125)</l>
+<l>connection (Region, Region)</l>
+<l>select_shape (Region, SelectedRegions, 'area', 'and', 15.83, 400)</l>
+<l>union1 (SelectedRegions, RegionUnion)</l>
+<l>closing_circle (RegionUnion, RegionClosing,3)</l>
+<c></c>
+<l>connection (RegionClosing, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions1, 'area', 'and', 110, 99999)</l>
+<l>shape_trans (SelectedRegions1, RegionTrans, 'rectangle1')</l>
+<c></c>
+<l>gen_rectangle1 (rz, 196, 101, 292, 576) </l>
+<l>reduce_domain (ImageEmphasize, rz, ImageReduced1)</l>
+<l>partition_rectangle (SelectedRegions1, Partitioned, 46, 100)</l>
+<l>intersection (Partitioned, SelectedRegions1, characters)</l>
+<c></c>
+<c></c>
+<l>closing_circle (characters, RegionClosing1, 3)</l>
+<c></c>
+<c></c>
+<c></c>
+<l>dev_close_window ()</l>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowHandle)</l>
+<c></c>
+<l>model :=['0','1','2','4','5','6','7','8','9','B',':']</l>
+<c></c>
+<l>gen_rectangle1 (r1, 200, 170, 250, 216) </l>
+<l>reduce_domain (ImageEmphasize, r1, ImageReduced3)</l>
+<l>reduce_domain (ImageEmphasize, ImageReduced3, n1)  </l>
+<l>create_scaled_shape_model (n1, 7, -0.39, 0.79, 'auto', 0.6, 1.5, 'auto', 'auto', 'ignore_global_polarity', 'auto', 35, M1)</l>
+<c></c>
+<l>gen_rectangle1 (r2, 200, 235, 251, 260) </l>
+<l>reduce_domain (ImageEmphasize, r2, n2)  </l>
+<l>create_scaled_shape_model (n2, 7, -0.39, 0.79, 'auto', 0.6, 1.5, 'auto', 'auto', 'use_polarity', 'auto', 35, M2)</l>
+<c></c>
+<l>gen_rectangle1 (r3, 200, 117, 251, 169) </l>
+<l>reduce_domain (ImageEmphasize, r3, n3)  </l>
+<l>create_scaled_shape_model (n3, 7, -0.39, 0.79, 'auto', 0.6, 1.5, 'auto', 'auto', 'use_polarity', 'auto', 35, M3)</l>
+<c></c>
+<l>gen_rectangle1 (r4, 251, 518, 294, 556) </l>
+<l>reduce_domain (ImageEmphasize, r4, n4)  </l>
+<l>create_scaled_shape_model (n4, 7, -0.39, 0.79, 'auto', 0.6, 1.5, 'auto', 'auto', 'use_polarity', 'auto', 42, M4)</l>
+<c></c>
+<l>gen_rectangle1 (r5, 251, 299, 294, 347) </l>
+<l>reduce_domain (ImageEmphasize, r5, n5)  </l>
+<l>create_scaled_shape_model (n5, 7, -0.39, 0.79, 'auto', 0.6, 1.5, 'auto', 'auto', 'use_polarity', 'auto', 42, M5)</l>
+<c></c>
+<l>gen_rectangle1 (r6, 250, 477, 294, 518) </l>
+<l>reduce_domain (ImageEmphasize, r6, n6)  </l>
+<l>create_scaled_shape_model (n6, 7, -0.39, 0.79, 'auto', 0.6, 1.5, 'auto', 'auto', 'use_polarity', 'auto', 42, M6)</l>
+<c></c>
+<l>gen_rectangle1 (r7, 200, 442, 250, 492) </l>
+<l>reduce_domain (ImageEmphasize, r7, n7)  </l>
+<l>create_scaled_shape_model (n7, 7, -0.39, 0.79, 'auto', 0.6, 1.5, 'auto', 'auto', 'use_polarity', 'auto', 42, M7)</l>
+<c></c>
+<l>gen_rectangle1 (r8, 200, 260, 250, 307) </l>
+<l>reduce_domain (ImageEmphasize, r8, n8)  </l>
+<l>create_scaled_shape_model (n8, 7, -0.39, 0.79, 'auto', 0.6, 1.5, 'auto', 'auto', 'use_polarity', 'auto', 42, M8)</l>
+<c></c>
+<l>gen_rectangle1 (r9, 200, 353, 250, 396) </l>
+<l>reduce_domain (ImageEmphasize, r9, n9)  </l>
+<l>create_scaled_shape_model (n9, 7, -0.39, 0.79, 'auto', 0.6, 1.5, 'auto', 'auto', 'use_polarity', 'auto', 42, M9)</l>
+<c></c>
+<l>gen_rectangle1 (rB, 200, 523, 250, 573) </l>
+<l>reduce_domain (ImageEmphasize, rB, nB)  </l>
+<l>create_scaled_shape_model (nB, 7, -0.39, 0.79, 'auto', 0.6, 1.5, 'auto', 'auto', 'use_polarity', 'auto', 42, MB)</l>
+<c></c>
+<l>gen_rectangle1 (rm, 250, 219, 296, 237) </l>
+<l>reduce_domain (ImageEmphasize, rm, nm)  </l>
+<l>create_scaled_shape_model (nm, 7, -0.39, 0.79, 'auto', 0.6, 1.5, 'auto', 'auto', 'use_polarity', 'auto', 42, Mm)</l>
+<c></c>
+<l>read_image (Image1, 'C:/Users/FBIzhu/Desktop/任务/易拉罐/素材/1.png')</l>
+<l>gen_rectangle1 (r0, 143, 480, 187, 514) </l>
+<l>reduce_domain (Image1, r0, n0)  </l>
+<l>create_scaled_shape_model (n0, 7, -0.39, 0.79, 'auto', 0.6, 1.5, 'auto', 'auto', 'use_polarity', 'auto', 42, M0)</l>
+<c></c>
+<l>models :=[M1,M2,M3,M0,M4,M5,M6,M7,M8,M9,MB,Mm]</l>
+<c></c>
+<l>find_scaled_shape_models (ImageReduced3, models, -0.39, 0.78, 0.6, 1.6, 0.7, 0, 0.5, 'least_squares', 0, 0.8, Row, Column, Angle, Scale, Score, Model)</l>
+<l>dev_display (Image)</l>
+<l>for j := 0 to |Score|-1 by 1</l>
+<l>    if(Model[j] == 0)</l>
+<l>        disp_message (WindowHandle, model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<l>    if(Model[j] == 1)</l>
+<l>        disp_message (WindowHandle, Model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<l>    if(Model[j] == 2)</l>
+<l>        disp_message (WindowHandle, Model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<c>    </c>
+<l>    if(Model[j] == 3)</l>
+<l>        disp_message (WindowHandle, Model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<l>    if(Model[j] == 4)</l>
+<l>        disp_message (WindowHandle, Model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<c>    </c>
+<l>    if(Model[j] == 5)</l>
+<l>        disp_message (WindowHandle, Model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<l>    if(Model[j] == 6)</l>
+<l>        disp_message (WindowHandle, Model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<l>    if(Model[j] == 7)</l>
+<l>        disp_message (WindowHandle, Model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<l>    if(Model[j] == 8)</l>
+<l>        disp_message (WindowHandle, Model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<l>    if(Model[j] == 9)</l>
+<l>        disp_message (WindowHandle, Model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<l>    if(Model[j] == 10)</l>
+<l>        disp_message (WindowHandle, Model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<l>    if(Model[j] == 11)</l>
+<l>        disp_message (WindowHandle, Model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<l>    if(Model[j] == 12)</l>
+<l>        disp_message (WindowHandle, Model[j], 'window', Row[j], Column[j], 'black', 'true')</l>
+<l>    endif</l>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

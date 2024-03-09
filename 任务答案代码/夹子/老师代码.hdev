@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_update_off ()</l>
+<l>read_image (Image, 'D:/desk/相机标定/任务/夹子/1.jpg')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>decompose3 (Image, r, g, b)</l>
+<l>trans_from_rgb (r, g, b, h, s, v, 'hsv')</l>
+<c></c>
+<c></c>
+<l>range:=[200,255,30,50,140,160,100,140]</l>
+<l>color :=['red','yellow','blue','green']</l>
+<c></c>
+<c></c>
+<l>threshold (s, Region, 95, 255)</l>
+<l>opening_circle (Region, Region, 5.5)</l>
+<l>closing_circle (Region, Region, 15.5)</l>
+<l>connection (Region, Regions)</l>
+<c></c>
+<l>select_shape (Regions, Regions, 'area', 'and', 20000, 200000)</l>
+<l>area_center (Regions, Area, Null, Null)</l>
+<c></c>
+<l>select_shape (Regions, sinal, 'area', 'and', 0, 99999)</l>
+<l>select_shape (Regions, multi, 'area', 'and', 99999, 999999999)</l>
+<l>union1 (sinal, SIGNAL)</l>
+<l>union1 (multi, MULTI)</l>
+<l>reduce_domain (h, SIGNAL, hsignal)</l>
+<l>reduce_domain (h, MULTI, hmulti)</l>
+<c></c>
+<l>tuple_num1:=[]</l>
+<l>num2:=[]</l>
+<l>rows:=[]</l>
+<l>colum:=[]</l>
+<l>phi:=[]</l>
+<l>types:=[]</l>
+<c> </c>
+<l>for n := 0 to |color|-1 by 1</l>
+<l>    threshold (hsignal, Region1, range[2*n],range[2*n+1])</l>
+<l>    connection (Region1, ConnectedRegions)</l>
+<l>    fill_up (ConnectedRegions, ConnectedRegions)</l>
+<l>    select_shape (ConnectedRegions, ConnectedRegions, 'area', 'and', 21000, 99999)</l>
+<l>    count_obj (ConnectedRegions, signalNumber)</l>
+<l>    if(signalNumber&gt;0)</l>
+<l>        for i := 1 to signalNumber by 1</l>
+<l>            select_obj (ConnectedRegions, ObjectSelected, i)</l>
+<l>            shape_trans (ObjectSelected, RegionTransignal, 'rectangle2')</l>
+<l>            smallest_rectangle2 (RegionTransignal, Row, Column, Phi, NULL, NULL)</l>
+<l>            rows:=[rows,Row]</l>
+<l>            colum:=[colum,Column]</l>
+<l>            phi:=[phi,Phi]</l>
+<l>            types:=[types,color[n]]</l>
+<l>        endfor</l>
+<l>    endif</l>
+<l>    tuple_num1:=[tuple_num1,signalNumber]</l>
+<l>endfor</l>
+<l>edges_color (Image, ImaAmp, ImaDir, 'canny', 1, 'nms',5,  40)</l>
+<l>threshold (ImaDir, edge, 0, 255)</l>
+<l>dilation_rectangle1 (edge, edge, 7, 7)</l>
+<c></c>
+<l>for n := 0 to |color|-1 by 1</l>
+<l>    threshold (hmulti, ct, range[2*n],range[2*n+1])</l>
+<l>    connection (ct, cts)</l>
+<l>    fill_up (cts, cts)</l>
+<l>    select_shape (cts, cts, 'area', 'and', 2000, 9999999)</l>
+<l>    area_center (cts, cts_area, Null, Null)</l>
+<l>    num21:=int(cts_area*1.0/90000)+1</l>
+<c>    *计算一个元组的累计和  计算共有几个</c>
+<l>    tuple_cumul (num21, Cumul)</l>
+<l>    if (Cumul=[])</l>
+<l>        Cumul:=[0]</l>
+<l>    endif</l>
+<c></c>
+<c>    *计算一个元组的正负  在输出元组sgn中作为整数（-1,0,1），比1小的返回-1，大的返回1</c>
+<l>    tuple_sgn (num21-1, Sgn)</l>
+<c>    *在t1中寻找t2出现的位置，并返回到t3中</c>
+<l>    tuple_find (Sgn, 1, Indices)</l>
+<l>    if(Indices&lt;0)</l>
+<l>    else</l>
+<l>        for i := 0 to |Indices|-1 by 1</l>
+<c>            *按索引值选中所有图标对象</c>
+<l>            select_obj (cts, sel_cts, Indices[i]+1)</l>
+<c>            *俩图像差集，去除sel_cts中edge到Regdiff</c>
+<l>            difference (sel_cts, edge, Regdiff)</l>
+<l>            connection (Regdiff, Regdiffs)</l>
+<c>            *多区域根据面积挑选想要的obj</c>
+<l>            area_center (Regdiffs, Regdiffs_area, NULL, NULL)</l>
+<c>            *将元组的元素分类并返回分类元组的目录  按升序排列然后将其在原数组的index按升序放入indices</c>
+<l>            tuple_sort_index (Regdiffs_area, so)</l>
+<c>            *将一个元组反转</c>
+<l>            tuple_inverse (so, inver)</l>
+<c>            *移除图标对象</c>
+<l>            remove_obj (cts, cts, Indices[i]+1)</l>
+<c>            *选中主要图标对象    从0（index）开始</c>
+<l>            select_obj (Regdiffs, seRegdiffs, inver[0:num21[Indices[i]]-1]+1)</l>
+<c>            *连接俩个图标对象</c>
+<l>            concat_obj (cts, seRegdiffs, cts)</l>
+<l>        endfor</l>
+<l>    endif</l>
+<c></c>
+<l>    count_obj (cts, cts_Number)</l>
+<l>    if(cts_Number&gt;0)</l>
+<l>        for i := 1 to cts_Number by 1</l>
+<l>            select_obj (cts, sel_cts, i)</l>
+<c>            *有角度的最小外接矩形拟合</c>
+<l>            shape_trans (sel_cts, RegionTransignal, 'rectangle2')</l>
+<c>            *获取值    短边在后，长边在前</c>
+<l>            smallest_rectangle2 (RegionTransignal, Row, Column, Phi, NULL, NULL)</l>
+<l>            rows:=[rows,Row]</l>
+<l>            colum:=[colum,Column]</l>
+<l>            phi:=[phi,Phi]</l>
+<l>            types:=[types,types[n]]</l>
+<l>        endfor</l>
+<l>    endif</l>
+<l>    num2:=[num2,Cumul[|Cumul|-1]]</l>
+<l>endfor</l>
+<c></c>
+<l>num:=tuple_num1+num2</l>
+<l>tuple_sum (num, Sum)</l>
+<c></c>
+<l>dev_close_window ()</l>
+<l>dev_display (Image)</l>
+<l>dev_get_window (WindowHandle)</l>
+<c></c>
+<l>disp_message (WindowHandle, '夹子总数：'+Sum, 'window', 30, 50, 'black', 'true')</l>
+<c></c>
+<l>for i := 0 to |color|-1 by 1</l>
+<l>    disp_message (WindowHandle, color[i]+':'+num[i], 'window', 60+30*i, 20, 'black', 'true')</l>
+<l>endfor</l>
+<c></c>
+<l>for i := 0 to |types|-1 by 1</l>
+<l>    disp_message (WindowHandle, '('+rows[i]+','+colum[i]+')', 'image', rows[i], colum[i], 'black', 'false')</l>
+<l>    disp_arrow (WindowHandle, rows[i], colum[i], rows[i]-sin(phi[i])*150, colum[i]+cos(phi[i])*150, 5)</l>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="22.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>dev_update_off ()</l>
+<l>read_image (Image, 'pads')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>dev_close_window ()</l>
+<l>dev_open_window_fit_image (Image, 0, 0, -1, -1, WindowHandle)</l>
+<l>set_display_font (WindowHandle, 14, 'mono', 'true', 'false')</l>
+<c> </c>
+<c>*定义圆的近似位置和测量公差</c>
+<c> </c>
+<l>RowCircle := [52:89:500]</l>
+<l>CircleInitRow := [RowCircle,RowCircle]</l>
+<l>CircleInitColumn := [gen_tuple_const(6,348),gen_tuple_const(6,438)]</l>
+<l>gen_cross_contour_xld (Cross1, CircleInitRow, CircleInitColumn, 6, 0.785398)</l>
+<l>CircleInitRadius := [gen_tuple_const(6,23),gen_tuple_const(6,23)]</l>
+<l>CircleRadiusTolerance := 12</l>
+<c> </c>
+<c>*定义矩形的近似位置和测量公差</c>
+<c> </c>
+<l>RectangleInitRow := [410,410]</l>
+<l>RectangleInitColumn := [215,562]</l>
+<l>RectangleInitPhi := [0,0]</l>
+<l>RectangleInitLength1 := [85,85]</l>
+<l>RectangleInitLength2 := [88,88]</l>
+<l>RectangleTolerance := 10</l>
+<c> </c>
+<c>* 准备计量模型数据结构</c>
+<l>create_metrology_model (MetrologyHandle)</l>
+<l>set_metrology_model_image_size (MetrologyHandle, Width, Height)  //设置计量对象图像的大小。</l>
+<c> </c>
+<c>*将定义的矩形加入到计量模型中</c>
+<l>add_metrology_object_rectangle2_measure (MetrologyHandle, RectangleInitRow, RectangleInitColumn, RectangleInitPhi, RectangleInitLength1, RectangleInitLength2, RectangleTolerance, 5, .5, 1, [], [], MetrologyRectangleIndices)</l>
+<c> </c>
+<c>*将定义的圆加入到计量模型中</c>
+<l>add_metrology_object_circle_measure (MetrologyHandle, CircleInitRow, CircleInitColumn, CircleInitRadius, CircleRadiusTolerance, 5, 1.5, 2, [], [], MetrologyCircleIndices)</l>
+<c> </c>
+<c>*在一次调用中可每个计量对象可以测量多个圆/矩形/直线/椭圆,此处设置圆的数目为2</c>
+<l>set_metrology_object_param (MetrologyHandle, MetrologyCircleIndices, 'num_instances', 2)</l>
+<c> </c>
+<c>*将“measure_transition”（测量转换）设置为“uniform”（统一）确保只返回一致的圆，要么只是从/亮到暗的边缘，要么相反。因为一致性检查增加了运行时，所以默认情况下已切换。但在本例中可设置使用，因为负边和正边都存在</c>
+<l>set_metrology_object_param (MetrologyHandle, MetrologyCircleIndices, 'measure_transition', 'uniform')</l>
+<c> </c>
+<c>*设置最小分数，增加结果的鲁棒性</c>
+<l>set_metrology_object_param (MetrologyHandle, MetrologyCircleIndices, 'min_score', .9)</l>
+<c> </c>
+<c>* 开始执行测量</c>
+<l>apply_metrology_model (Image, MetrologyHandle) //测量并拟合计量模型中所有计量对象的几何形状。</l>
+<c> </c>
+<c>* 获取计量模型的测量结果,矩形</c>
+<l>get_metrology_object_result (MetrologyHandle, MetrologyRectangleIndices, 'all', 'result_type', 'all_param', RectangleParameter)</l>
+<c> </c>
+<c>*获取参数</c>
+<l>Sequence := [0:5:|RectangleParameter| - 1]</l>
+<l>RectangleRow := RectangleParameter[Sequence]</l>
+<l>RectangleColumn := RectangleParameter[Sequence + 1]</l>
+<l>RectanglePhi := RectangleParameter[Sequence + 2]</l>
+<l>RectangleLength1 := RectangleParameter[Sequence + 3]</l>
+<l>RectangleLength2 := RectangleParameter[Sequence + 4]</l>
+<c> </c>
+<c>*获取计量模型的测量结果 </c>
+<c> </c>
+<l>get_metrology_object_result (MetrologyHandle, MetrologyCircleIndices, 'all', 'result_type', 'all_param', CircleParameter)</l>
+<c> </c>
+<c>*取参数</c>
+<l>Sequence := [0:3:|CircleParameter| - 1]</l>
+<l>CircleRow := CircleParameter[Sequence]</l>
+<l>CircleColumn := CircleParameter[Sequence + 1]</l>
+<l>CircleRadius := CircleParameter[Sequence + 2]</l>
+<c> </c>
+<c>*显示结果，查询计量对象的结果轮廓。</c>
+<l>get_metrology_object_result_contour (Contours, MetrologyHandle, 'all', 'all', 1.5)</l>
+<c> </c>
+<c>*获取测量区域的轮廓以及边缘点的坐标，拟合圆和矩形的必要条件</c>
+<l>get_metrology_object_measures (Contour, MetrologyHandle, 'all', 'all', Row1, Column1) //得到计量模型的测量区域和边缘定位结果</l>
+<l>gen_cross_contour_xld (Cross, Row1, Column1, 6, 0.785398)</l>
+<c> </c>
+<c>*显示结果</c>
+<l>Color := ['gray','cyan','green']</l>
+<l>dev_display (Image)</l>
+<l>dev_set_line_width (1)</l>
+<l>dev_set_color (Color[0])</l>
+<l>dev_display (Contour)</l>
+<l>dev_set_color (Color[1])</l>
+<l>dev_display (Cross)</l>
+<l>dev_set_line_width (2)</l>
+<l>dev_set_color (Color[2])</l>
+<l>dev_display (Contours)</l>
+<l>Message := Color[2] + ': Measurement result'</l>
+<l>Message[1] := Color[1] + ': Edge candidate points'</l>
+<l>Message[2] := Color[0] + ': Measure regions'</l>
+<l>disp_message (WindowHandle, Message, 'window', 12, 12, 'black', 'true')</l>
+<l>stop ()</l>
+<c> </c>
+<c>*清理内存</c>
+<l>clear_metrology_model (MetrologyHandle)  //释放句柄</l>
+<c> </c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
