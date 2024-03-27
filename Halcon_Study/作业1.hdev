@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>*要想求解一元二次方程，请根据 ax^2 + bx + c = 0 的形式')</c>
+<c>*a,b,c的初值</c>
+<l>a := 1</l>
+<l>b := 2</l>
+<l>c := 5</l>
+<c>*根1，根2</c>
+<l>x1:=0</l>
+<l>x2:=0</l>
+<c>*对一元二次方程求解</c>
+<l>tuple_find (a, 0, NULL)</l>
+<l>if( NULL == -1)</l>
+<c>*判别式</c>
+<l>    x := b*b-4*a*c</l>
+<l>    if (x &lt; 0)</l>
+<c>        *方程有两个虚根</c>
+<l>        tuple_sqrt (-x, Sqrt)</l>
+<l>          Imge := Sqrt/2*a</l>
+<l>          Real := real(-b/(2*a))</l>
+<l>          x1:=Real+'+'+Imge+'i'</l>
+<l>          x2:=Real+'-'+Imge+'i'</l>
+<l>    elseif (x == 0)</l>
+<c>           *方程有唯一根</c>
+<l>           x1:=-b/(2*a)</l>
+<l>           x2:=-b/(2*a)</l>
+<l>    else</l>
+<l>          tuple_sqrt (x, Sqrt)</l>
+<c>          *方程有两个根</c>
+<l>          x1:= (-b+Sqrt)/(2*a)</l>
+<l>          x2:= (-b-Sqrt)/(2*a)</l>
+<l>     endif</l>
+<c>*对一元一次方程求解</c>
+<l>elseif (a != -1)</l>
+<l>     if (b == 0)</l>
+<l>          if (c != 0)</l>
+<c>              *方程错误！</c>
+<l>              x1:='NUll'</l>
+<l>              x2:='NUll'</l>
+<l>          else</l>
+<c>              *方程无意义！</c>
+<l>               x1:='NUll'</l>
+<l>               x2:='NUll'</l>
+<l>          endif</l>
+<l>     else</l>
+<c>         *方程有唯一根，为',-c/b</c>
+<l>          x1:=-c/b</l>
+<l>          x2:=-c/b</l>
+<l>     endif</l>
+<l>endif</l>
+<c>*第二题</c>
+<c>*最终值</c>
+<l>N:=5</l>
+<l>Sum:=0.0 </l>
+<l>mult:=1.0</l>
+<l>for i := 1 to 2*N by 1</l>
+<c>    *2x+1 在范围 [1&lt;i&lt;n] 内的累加和，j在1&lt;i&lt;2N的累乘为</c>
+<l>    if((N/2)&lt;6)</l>
+<l>        Sum:=Sum+2*i+1</l>
+<l>        mult:=i*mult</l>
+<l>    else</l>
+<l>        mult:=i*mult</l>
+<l>    endif  </l>
+<l>endfor</l>
+<c>*第三题</c>
+<l>Tuple:=[1,2,10]</l>
+<l>Tuple[3]:=10</l>
+<l>T:=Tuple[1,3]</l>
+<l>Val_mean:=mean(T)</l>
+<c>*第四题</c>
+<c>*生成范围在5~10的元素</c>
+<l>minvalue:=5</l>
+<l>maxvalue:=10</l>
+<l>value:=int(minvalue+rand(10)*(maxvalue-minvalue))</l>
+<c>*计算长度</c>
+<l>tuple_length (value, Length)</l>
+<c>*将5~7的数置为0</c>
+<l>for I := 0 to |value|-1 by 1</l>
+<l>    if(value[I]&lt;7 and value[I]&gt;5)</l>
+<l>        value[I]:=0</l>
+<l>    endif</l>
+<l>endfor</l>
+<c>*平均数</c>
+<l>tuple_mean(value, Mean)</l>
+<c>*中位数</c>
+<l>tuple_median (value, Median)</l>
+<l>count:=0</l>
+<c>*众数,统计出现次数最多的数字，并接收数据结果</c>
+<l>for I := 0 to |value|-1 by 1</l>
+<l>    tuple_find(value,value[I],Indices)</l>
+<l>    if(|Indices|&gt;count)</l>
+<l>        count:=|Indices|</l>
+<l>        mode:=[mode,value]</l>
+<l>    endif</l>
+<l>endfor</l>
+<c>*取数据最后一个作为众数</c>
+<l>mode:=mode[|mode|-1]</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>     </c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

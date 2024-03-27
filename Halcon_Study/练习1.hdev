@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>Name:=['白起','扁鹊','曹操','成吉思汗','程咬金','达摩','狄仁杰','典韦','东皇太一','干将莫邪','高渐离','宫本武藏','关羽','鬼谷子','韩信','黄忠','橘右京','铠','兰陵王','李信','廉颇','刘邦','刘备','鲁班大师','鲁班七号','吕布','马超','马可波罗','蒙恬','蒙伢','哪吒','苏烈','孙膑','孙策','夏侯','项羽','亚瑟','曜','弈星','元歌','云中君','张良','赵云','周瑜','诸葛亮','庄周','赢政','李白','司马懿','明示隐','狂铁','澜']</l>
+<l>Height:=[193,173,179,177,200,177,178,183,215,237,178,181,191,150,185,187,176,188,179,187,190,179,178,192,149,192,180,179,190,50,175,208,	155,185,186,197,188,176,169,182,182,180,186,180,183,175,182,184,184,181,171,180]</l>
+<c>*排序绘制直方图(技术不精，设置了递归，请在最后显示设置断点)</c>
+<l>quick_sort (Height, 0, |Height|-1)</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="quick_sort">
+<interface>
+<ic>
+<par name="list" base_type="ctrl" dimension="0"/>
+<par name="start" base_type="ctrl" dimension="0"/>
+<par name="end" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<l>a:=0</l>
+<c>*链接快速排序的初始值索引</c>
+<l>if(start&gt;=end or a==1)   </l>
+<l>    return ()</l>
+<l>endif</l>
+<l>mid_data := list[start]</l>
+<l>left:=start</l>
+<l>right:=end</l>
+<l>while (left &lt; right)</l>
+<c>    *从序列右端开始，向左遍历，直到找到小于base的数</c>
+<l>    while (left &lt; right and list[right] &gt;= mid_data)</l>
+<l>        right := right-1</l>
+<l>    endwhile</l>
+<c>    *找到了比base小的元素，将这个元素放到最左边的位置</c>
+<l>    list[left] := list[right]</l>
+<c>  	*从序列左端开始，向右遍历，直到找到大于base的数</c>
+<l>    while (left &lt; right and list[left] &lt;= mid_data)</l>
+<l>        left := left+1</l>
+<l>    endwhile</l>
+<c>			</c>
+<c>		*找到了比base大的元素，将这个元素放到最右边的位置</c>
+<l>    list[right] := list[left]</l>
+<l>endwhile</l>
+<c>	*最后将base放到left位置。此时，left位置的左侧数值应该都比left小；</c>
+<c>	*而left位置的右侧数值应该都比left大。</c>
+<l>list[left] := mid_data</l>
+<c></c>
+<c></c>
+<c>*对“基准标号“左侧的一组数值进行递归的切割，以至于将这些数值完整的排序</c>
+<l>    quick_sort (list, start, left- 1)</l>
+<c>    </c>
+<c>    *对“基准标号“右侧的一组数值进行递归的切割，以至于将这些数值完整的排序</c>
+<l>    quick_sort (list, left + 1, |list|-1)</l>
+<l>    result:=list</l>
+<c>*生成起点坐标</c>
+<l>tuple_gen_sequence (140, 240, 5, Sequence)</l>
+<l>tuple_concat (50, Sequence, forenum)</l>
+<c>*生成终点坐标</c>
+<l>tuple_concat (0, forenum, backnum)</l>
+<l>tuple_concat (backnum, forenum, num)</l>
+<c>*生成映射数组，在映射数组中统计各范围内的数据</c>
+<l>tuple_gen_const (22, 0, count)</l>
+<l>backnum:=backnum[0 : |backnum|-2]</l>
+<l>for i := 0 to |backnum|-1 by 1</l>
+<l>    for j := 0 to |result|-1 by 1</l>
+<l>        if(num[i]&lt;=result[j] and result[j]&lt;num[i+23])</l>
+<l>           count[i]:=count[i]+1</l>
+<l>        endif</l>
+<l>    endfor</l>
+<l>endfor</l>
+<c>*拼接坐标，利用长方形的左上方和右下方顶点生成直方图</c>
+<l>Column_Left:=backnum</l>
+<l>Column_Left[0]:=125</l>
+<l>Column_Left[1]:=135</l>
+<l>tuple_gen_const (22, 0, Row_Left)</l>
+<l>Column_Right:=forenum</l>
+<l>Column_Right[0]:=135</l>
+<l>tuple_gen_const (22, 6, mult)</l>
+<l>tuple_mult (mult, count, Row_Right)</l>
+<l>gen_rectangle1 (Rectangle, Row_Left ,Column_Left, Row_Right,Column_Right)</l>
+<l>dev_clear_window ()</l>
+<l>dev_open_window (0, 0, 800, 800, 'white', WindowHandle)</l>
+<c>*镜像结果</c>
+<l>mirror_region (Rectangle, RegionMirror, 'row', 500)</l>
+<l>dev_display (RegionMirror)</l>
+<c>*坐标轴x数组</c>
+<l>tuple_concat (125,Column_Right, Column_Right)</l>
+<l>Column:=[]</l>
+<l>for k := 0 to |Column_Right|-2 by 1</l>
+<l>    Column:=[Column,(real(Column_Right[k])+real(Column_Right[k+1]))/2]</l>
+<l>endfor</l>
+<c>*绘制坐标轴</c>
+<l>gen_region_line (ROI_0, 498.832, 124.617, 406.738, 125.37)</l>
+<l>gen_region_line (TMP_Region, 407.24, 124.553, 411.344, 120.856)</l>
+<l>union2 (ROI_0, TMP_Region, ROI_0)</l>
+<l>gen_region_line (TMP_Region, 407.014, 125.122, 411.471, 129.451)</l>
+<l>union2 (ROI_0, TMP_Region, ROI_0)</l>
+<l>gen_region_line (TMP_Region, 499.12, 125.284, 499.12, 254)</l>
+<l>union2 (ROI_0, TMP_Region, ROI_0)</l>
+<l>gen_region_line (TMP_Region, 499.172, 254.251, 494.781, 249.736)</l>
+<l>union2 (ROI_0, TMP_Region, ROI_0)</l>
+<l>gen_region_line (TMP_Region, 499.135, 253.991, 502.739, 249.952)</l>
+<l>union2 (ROI_0, TMP_Region, ROI_0)</l>
+<l>dev_display (ROI_0)</l>
+<c>*显示直方图统计结果和坐标轴相关内容</c>
+<l>Color:=[ 'black', 'blue', 'coral', 'cyan', 'forest green', 'green', 'lime green', 'magenta', 'red', 'slate blue', 'green', 'black', 'blue', 'coral', 'cyan', 'forest green', 'green', 'lime green', 'magenta', 'red', 'slate blue', 'green']</l>
+<l>for I := 0 to |count|-1 by 1</l>
+<l>    if (I==|count|-1)</l>
+<l>        dev_disp_text (count[I], 'image', (495-Row_Right[I]), Column[I],Color[I] , ['box'], ['false'])</l>
+<l>        dev_disp_text (num[I], 'image', 500, Column[I]-6,Color[I] , ['box'], ['false'])</l>
+<l>        dev_disp_text (num[I+1], 'image', 500, 237.5,Color[I] , ['box'], ['false'])</l>
+<l>    else</l>
+<l>        dev_disp_text (count[I], 'image', (495-Row_Right[I]), Column[I],Color[I] , ['box'], ['false'])</l>
+<l>        dev_disp_text (num[I], 'image', 500, Column[I]-6,Color[I] , ['box'], ['false'])</l>
+<l>    endif</l>
+<l>endfor</l>
+<c>*y轴坐标</c>
+<l>tuple_gen_sequence (1,13,1,y)</l>
+<l>tuple_gen_sequence (412,499,6,Y_Row)</l>
+<l>for J := 1 to 13 by 1</l>
+<l>    dev_disp_text (y[13-J], 'image', Y_Row[J], 121,Color[J] , ['box'], ['false'])     </l>
+<l>endfor</l>
+<c>*完善直方图内容</c>
+<l>dev_disp_text ('人数/个', 'image', 500, 243, 'black' , ['box','box_color'], ['false','#ffffff77'])     </l>
+<l>dev_disp_text ('身高/CM', 'image', 412, 115, 'black' , ['box','box_color'], ['false','#ffffff77'])     </l>
+<l>set_display_font (WindowHandle, 30, 'mono', 'true', 'false')</l>
+<l>dev_disp_text ('英雄身高直方图', 'image', 402, 163, 'blue' , ['box'], ['false'])     </l>
+<c></c>
+<l>return ()</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="quick_sort">
+<parameters>
+<parameter id="end"/>
+<parameter id="list"/>
+<parameter id="start"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
