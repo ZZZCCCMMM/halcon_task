@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<l>gen_image_const (Image, 'byte', 8, 8)</l>
+<l>value:=[1,7,1,8,2,7,1,1,1,1,1,5,2,2,1,1,1,1,5,5,5,1,1,7,8,1,1,5,1,1,8,1,8,1,1,5,1,8,1,1,1,7,1,8,1,7,5,1,1,7,1,8,1,7,1,1,1,1,5,1,5,5,1,1]</l>
+<l>get_region_points (Image, Rows, Columns)</l>
+<l>set_grayval (Image, Rows, Columns, value)</l>
+<l>mean_image (Image, ImageMean, 5, 5)</l>
+<l>stop ()</l>
+<c></c>
+<c></c>
+<l>read_image (Image, 'circular_barcode')</l>
+<c>*分别添加高斯椒盐噪声和椒盐噪声</c>
+<l>gauss_distribution (7, gauss_Distribution)</l>
+<l>sp_distribution (5, 5, sp_Distribution)</l>
+<l>add_noise_distribution (Image, gauss_Noise, gauss_Distribution)</l>
+<l>add_noise_distribution (Image, sp_Noise, sp_Distribution)</l>
+<c>*均值滤波核子大小</c>
+<l>Mask:=[3, 5, 7, 9, 11, 15, 23, 31, 43, 61, 101]</l>
+<c>*进行滤波，将结果拼接</c>
+<l>for i := 0 to |Mask|-1 by 1</l>
+<l>    mean_image (Image, gauss_Mean, Mask[i],Mask[i])</l>
+<l>    mean_image (Image, sp_Mean, Mask[i],Mask[i])</l>
+<l>    if (i==0)</l>
+<l>        concat_obj (Image, gauss_Mean, gauss_Images)</l>
+<l>        concat_obj (Image, sp_Mean, sp_Images)  </l>
+<l>    else</l>
+<l>        concat_obj (gauss_Images, gauss_Mean, gauss_Images)</l>
+<l>        concat_obj (sp_Images, sp_Mean, sp_Images)</l>
+<l>    endif</l>
+<l>endfor</l>
+<l>concat_obj (gauss_Images, sp_Images, Images)</l>
+<c>*对比结果，前俩排为均值滤波对高斯椒盐噪声处理的结果，后俩排为均值滤波对椒盐噪声处理的结果</c>
+<l>tile_images (Images, TiledImage, 6, 'horizontal')</l>
+<l>stop ()</l>
+<c></c>
+<c></c>
+<l>read_image (Image, 'particle')</l>
+<c>*大区域的水渍</c>
+<l>threshold (Image, Large, 110, 255)</l>
+<l>dilation_circle (Large, LargeDilation, 7.5)</l>
+<c>*除去大区域，防止在分析小区域时造成干扰</c>
+<l>complement (LargeDilation, NotLarge)</l>
+<l>reduce_domain (Image, NotLarge, ParticlesRed)</l>
+<c>*均值滤波后，使用动态阈值分割出小区域范围中的水渍</c>
+<l>mean_image (ParticlesRed, Mean, 31, 31)</l>
+<l>dyn_threshold (ParticlesRed, Mean, SmallRaw, 3, 'light')</l>
+<l>opening_circle (SmallRaw, Small, 2.5)</l>
+<l>connection (Small, SmallConnection)</l>
+<c>*将水渍进行排序，计算灰度值的均值、偏差和面积</c>
+<l>sort_region (SmallConnection, SmallConnection, 'character', 'true', 'row')</l>
+<l>intensity (SmallConnection, Image, MeanGray, DeviationGray)</l>
+<l>area_center (SmallConnection, Area, Row, Column)</l>
+<l>for i := 0 to |Row|-1 by 1</l>
+<c>    *逐个显示结果</c>
+<l>    dev_disp_text (['Area = ' + Area[i],'Intensity = ' + MeanGray[i]$'.3'], 'image', Row[i] , Column[i] , 'black', 'box_color', '#fce9d4dd')</l>
+<l>endfor</l>
+<l>stop ()</l>
+<c></c>
+<c></c>
+<l>read_image (Image, 'fingerprint')</l>
+<c>*执行图像的相干增强扩散，作为参考</c>
+<l>coherence_enhancing_diff (Image, ImageCED, 0.5, 4, 0.5, 50)</l>
+<c>*获取图片宽高</c>
+<l>get_image_size (Image, Width, Height)</l>
+<c>*转到频域</c>
+<l>rft_generic (Image, ImageFFT, 'to_freq', 'none', 'complex', Width)</l>
+<c>*低通滤波</c>
+<l>gen_lowpass (ImageLowpass, 0.4, 'none', 'rft', Width, Height)</l>
+<c>*高通滤波</c>
+<l>gen_gauss_filter (ImageGauss, 50, 50, 0, 'n', 'rft', Width, Height)</l>
+<c>*高斯低通滤波</c>
+<l>convol_fft (ImageFFT, ImageLowpass, ImageConvol)</l>
+<l>convol_fft (ImageConvol, ImageGauss, ImageConvol)</l>
+<c>*回到副域，识取指纹大概位置</c>
+<l>rft_generic (ImageConvol, IlluminationImage, 'from_freq', 'none', 'byte', Width)</l>
+<l>sub_image (Image, IlluminationImage, ImageSub, 2, 200)</l>
+<l>threshold (ImageSub, Regions, 0, 230)</l>
+<l>opening_circle (Regions, RegionOpening, 1.0)</l>
+<l>stop ()</l>
+<c></c>
+<c></c>
+<l>read_image (Image, 'surface_scratch')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<c>*均值滤波后，使用动态阈值分割出划痕</c>
+<l>mean_image (Image, ImageMean, 7, 7)</l>
+<l>dyn_threshold (Image, ImageMean, DarkPixels, 5, 'dark')</l>
+<l>connection (DarkPixels, ConnectedRegions)</l>
+<l>select_shape (ConnectedRegions, SelectedRegions, 'area', 'and', 10, 1000)</l>
+<l>union1 (SelectedRegions, RegionUnion)</l>
+<l>dilation_circle (RegionUnion, RegionDilation, 3.5)</l>
+<c>*提取骨架，精确定位</c>
+<l>skeleton (RegionDilation, Skeleton)</l>
+<l>connection (Skeleton, Errors)</l>
+<c>*将划痕分为长划痕和点划痕，可视化结果</c>
+<l>select_shape (Errors, Scratches, 'area', 'and', 50, 10000)</l>
+<l>select_shape (Errors, Dots, 'area', 'and', 1, 50)</l>
+<l>concat_obj (Scratches, Dots, ObjectsConcat)</l>
+<l>dev_set_draw ('margin')</l>
+<l>dilation_circle (ObjectsConcat, RegionDilation1, 2.5)</l>
+<l>stop ()</l>
+<c>    </c>
+<c>    </c>
+<c>     </c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+<procedure name="close_zoom_window">
+<interface>
+<ic>
+<par name="WindowHandleZoom" base_type="ctrl" dimension="0"/>
+<par name="FormerWidth" base_type="ctrl" dimension="0"/>
+<par name="FormerHeight" base_type="ctrl" dimension="0"/>
+</ic>
+</interface>
+<body>
+<l>dev_set_window (WindowHandleZoom)</l>
+<l>dev_close_window ()</l>
+<l>dev_set_part (0, 0, FormerHeight - 1, FormerWidth - 1)</l>
+<l>return ()</l>
+</body>
+<docu id="close_zoom_window">
+<short lang="en_US">close zoom window and reset part</short>
+<parameters>
+<parameter id="FormerHeight"/>
+<parameter id="FormerWidth"/>
+<parameter id="WindowHandleZoom"/>
+</parameters>
+</docu>
+</procedure>
+<procedure name="open_zoom_window">
+<interface>
+<ic>
+<par name="RowPos" base_type="ctrl" dimension="0"/>
+<par name="ColPos" base_type="ctrl" dimension="0"/>
+<par name="RowROI1" base_type="ctrl" dimension="0"/>
+<par name="ColROI1" base_type="ctrl" dimension="0"/>
+<par name="RowROI2" base_type="ctrl" dimension="0"/>
+<par name="ColROI2" base_type="ctrl" dimension="0"/>
+<par name="ZoomFactor" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="WindowHandleZoom" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>dev_open_window (RowPos, ColPos, (ColROI2 - ColROI1) * ZoomFactor, (RowROI2 - RowROI1) * ZoomFactor, 'black', WindowHandleZoom)</l>
+<l>dev_set_part (round(RowROI1), round(ColROI1), round(RowROI2), round(ColROI2))</l>
+<l>return ()</l>
+</body>
+<docu id="open_zoom_window">
+<short lang="en_US">open window and set part</short>
+<parameters>
+<parameter id="ColPos"/>
+<parameter id="ColROI1"/>
+<parameter id="ColROI2"/>
+<parameter id="RowPos"/>
+<parameter id="RowROI1"/>
+<parameter id="RowROI2"/>
+<parameter id="WindowHandleZoom"/>
+<parameter id="ZoomFactor"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>

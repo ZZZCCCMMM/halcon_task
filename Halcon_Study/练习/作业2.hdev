@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c></c>
+<c>*任务1</c>
+<l>read_image (Image, 'D:/desk/彩图.jpg')</l>
+<l>zoom_image_size (Image, Image, 217, 217, 'constant')</l>
+<l>get_image_size (Image, Height, Width)</l>
+<l>decompose3 (Image, R, G, B)</l>
+<l>gen_image_const (sampledR, 'byte', Height, Width)</l>
+<l>gen_image_const (sampledG, 'byte', Height, Width)</l>
+<l>gen_image_const (sampledB, 'byte', Height, Width)</l>
+<l>rowsStep:=7</l>
+<l>for j := 0 to Width-1 by 1</l>
+<l>    for i := 0 to Height-7 by rowsStep</l>
+<l>        get_grayval (R, i, j, Rval)</l>
+<l>        get_grayval (G, i, j, Gval)</l>
+<l>        get_grayval (B, i, j, Bval)</l>
+<l>        set_grayval (sampledR, i, j, Rval)</l>
+<l>        set_grayval (sampledG, i, j, Gval)</l>
+<l>        set_grayval (sampledB, i, j, Bval)</l>
+<l>        set_grayval (sampledR, i+1, j, Rval)</l>
+<l>        set_grayval (sampledG, i+1, j, Gval)</l>
+<l>        set_grayval (sampledB, i+1, j, Bval) </l>
+<l>        set_grayval (sampledR, i+2, j, Rval)</l>
+<l>        set_grayval (sampledG, i+2, j, Gval)</l>
+<l>        set_grayval (sampledB, i+2, j, Bval)</l>
+<l>        set_grayval (sampledR, i+3, j, Rval)</l>
+<l>        set_grayval (sampledG, i+3, j, Gval)</l>
+<l>        set_grayval (sampledB, i+3, j, Bval)</l>
+<l>        set_grayval (sampledR, i+4, j, Rval)</l>
+<l>        set_grayval (sampledG, i+4, j, Gval)</l>
+<l>        set_grayval (sampledB, i+4, j, Bval) </l>
+<l>        set_grayval (sampledR, i+5, j, Rval)</l>
+<l>        set_grayval (sampledG, i+5, j, Gval)</l>
+<l>        set_grayval (sampledB, i+5, j, Bval) </l>
+<l>        set_grayval (sampledR, i+6, j, Rval)</l>
+<l>        set_grayval (sampledG, i+6, j, Gval)</l>
+<l>        set_grayval (sampledB, i+6, j, Bval) </l>
+<l>    endfor</l>
+<l>endfor</l>
+<l>compose3 (sampledR, sampledG, sampledB, sampledImage)</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<l>read_image (Image, 'D:/desk/彩图.jpg')</l>
+<c>*将图像的尺寸缩放为217x217像素</c>
+<l>zoom_image_size (Image, Image, 217, 217, 'constant')</l>
+<c>*任务1副本</c>
+<c>*隔7个值取一个灰度值</c>
+<l>* rs:=[]</l>
+<l>* for index:=0 to 31-1 by 1</l>
+<l>*     tuple_gen_const(217,index,Newtuple) </l>
+<l>* rs:=[rs,Newtuple]</l>
+<l>* endfor </l>
+<l>* cs:=[]</l>
+<l>* for index:=0 to 31-1 by 1</l>
+<l>* 	tuple_gen_sequence(0,217-1,1,Sequence)	</l>
+<l>* 	cs:=[cs,Sequence]	</l>
+<l>* endfor</l>
+<l>* get_image_size (Image, Width, Height)</l>
+<l>* decompose3 (Image, R, G, B)</l>
+<l>* get_grayval(R,rs,cs,Rval)</l>
+<l>* get_grayval(G,rs,cs,Gval)</l>
+<l>* get_grayval(B,rs,cs,Bval)</l>
+<c></c>
+<l>* gen_image_const (recultR, 'byte', Height, Width/7)</l>
+<l>* gen_image_const (recultG, 'byte', Height, Width/7)</l>
+<l>* gen_image_const (recultB, 'byte', Height, Width/7)</l>
+<c></c>
+<l>* set_grayval (recultR, rs, cs, Rval)</l>
+<l>* set_grayval (recultG, rs, cs, Gval)</l>
+<l>* set_grayval (recultB, rs, cs, Bval)</l>
+<l>* compose3 (recultR, recultG, recultB, MultiChannelImage)</l>
+<c></c>
+<c></c>
+<c>*任务2</c>
+<c>*同上，取各通道所有的灰度值</c>
+<l>rs:=[]</l>
+<l>for index:=0 to 217-1 by 1</l>
+<l>    tuple_gen_const(217,index,Newtuple) </l>
+<l>    rs:=[rs,Newtuple]</l>
+<l>endfor </l>
+<l>cs:=[]</l>
+<l>for index:=0 to 217-1 by 1</l>
+<l>	tuple_gen_sequence(0,217-1,1,Sequence)	</l>
+<l>	cs:=[cs,Sequence]	</l>
+<l>endfor</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>decompose3 (Image, R, G, B)</l>
+<c>*对各通道灰度值进行缩放</c>
+<l>get_grayval(R,rs,cs,Rval)</l>
+<l>tuple_div (Rval, 8, Quot)</l>
+<l>tuple_mult (Quot, 8, Prod)</l>
+<l>gen_image_const (recultR, 'byte', Height, Width)</l>
+<l>set_grayval (recultR, rs, cs, Rval)</l>
+<c></c>
+<l>get_grayval(G,rs,cs,Gval)</l>
+<l>tuple_div (Rval, 8, Quot)</l>
+<l>tuple_mult (Quot, 8, Prod)</l>
+<l>gen_image_const (recultG, 'byte', Height, Width)</l>
+<l>set_grayval (recultG, rs, cs, Gval)</l>
+<c></c>
+<l>get_grayval(B,rs,cs,Bval)</l>
+<l>tuple_div (Rval, 8, Quot)</l>
+<l>tuple_mult (Quot, 8, Prod)</l>
+<l>gen_image_const (recultB, 'byte', Height, Width)</l>
+<l>set_grayval (recultB, rs, cs, Bval)</l>
+<l>compose3 (recultR, recultG, recultB, MultiChannelImage)</l>
+<c></c>
+<c>*本意想用矩阵相加减和乘除算YCbCr和HSV各色域通道的值</c>
+<l>* create_matrix (1, 47089, Rval, RMatrixID)</l>
+<l>* create_matrix (1, 47089, Gval, GMatrixID)</l>
+<l>* create_matrix (1, 47089, Bval, BMatrixID)</l>
+<l>* R_:=[ 0.257,0.564,0.098]</l>
+<l>* G_:=[-0.148,-0.291,0.439]</l>
+<l>* B_:=[0.439,-0.368,-0.071]</l>
+<l>* create_matrix (1, 3, R_, R_MatrixID)</l>
+<l>* create_matrix (1, 3, G_, G_MatrixID)</l>
+<l>* create_matrix (1, 3, B_, B_MatrixID)</l>
+<l>* mult_matrix (RMatrixID, R_MatrixID, 'AB', RMatrixMultID)</l>
+<l>* mult_matrix (GMatrixID, G_MatrixID, 'AB' ,GMatrixMultID)</l>
+<l>* mult_matrix (BMatrixID, B_MatrixID, 'AB' ,BMatrixMultID)</l>
+<l>* add_matrix (RMatrixMultID, RMatrixMultID, MatrixSumID)</l>
+<l>* add_matrix (MatrixSumID, BMatrixID, MatrixSumID)</l>
+<c></c>
+<c></c>
+<l>read_image (Oip, 'D:/desk/OIP.jpg')</l>
+<l>get_image_size (Oip, Width, Height)</l>
+<l>zoom_image_size (Oip, Oip, 217, 217, 'constant')</l>
+<l>decompose3 (Oip, R, G, B)</l>
+<l>gen_image_const (H_, 'byte', 217, 217)</l>
+<l>gen_image_const (S_, 'byte', 217, 217)</l>
+<l>gen_image_const (V_, 'byte', 217, 217)</l>
+<c></c>
+<c>**转色彩空间**</c>
+<l>trans_from_rgb (R, G, B, H, S, V, 'hsv')</l>
+<l>compose3 (H, S, V, HSVImage)</l>
+<l>RGBtuple:=[]</l>
+<l>for i := 0 to 217-1 by 1</l>
+<l>    for j := 0 to 217-1 by 1</l>
+<l>        get_grayval (R, i, j, Rval)</l>
+<l>        get_grayval (G, i, j, Gval)</l>
+<l>        get_grayval (B, i, j, Bval)</l>
+<c>        </c>
+<c>        *YCbCr      </c>
+<l>        Y:= 0.257*Rval + 0.564*Gval + 0.098*Bval + 16</l>
+<l>        Cb:=-0.148*Rval - 0.291*Gval + 0.439*Bval + 12</l>
+<l>        Cr:=0.439*Rval - 0.368*Gval - 0.071*Bval + 128</l>
+<c>        </c>
+<l>        set_grayval (H_, i, j, Y)</l>
+<l>        set_grayval (S_, i, j, Cb)</l>
+<l>        set_grayval (V_, i, j, Cr)</l>
+<c>        </c>
+<c>        *缩放到0~100</c>
+<l>        Rval := Rval/100</l>
+<l>        Gval := Gval/100</l>
+<l>        Bval := Bval/100</l>
+<l>        val:=[Rval,Gval,Bval]</l>
+<l>        tuple_max(val, Max)</l>
+<l>        tuple_min(val ,Min)</l>
+<c>        *转换结果h(0~360),s(0~100),v(0~100)</c>
+<l>        v := Max</l>
+<l>        if(Max == 0)</l>
+<l>            s := 0  </l>
+<l>        else</l>
+<l>            s := 1 - (Min/Max)</l>
+<l>        endif</l>
+<l>        if(Max == Min)</l>
+<l>            h := 0</l>
+<l>        elseif(Max == Rval and Gval&gt;=Bval)</l>
+<l>            h := 60*((Gval-Bval)/(Max-Min))</l>
+<l>        elseif(Max == Rval and Gval&lt;Bval)</l>
+<l>            h := 60*((Gval-Bval)/(Max-Min)) + 360</l>
+<l>        elseif(Max == Gval)</l>
+<l>            h := 60*((Bval-Rval)/(Max-Min)) + 120</l>
+<l>        elseif(Max == Bval)</l>
+<l>            h := 60*((Rval-Gval)/(Max-Min)) + 240</l>
+<l>        endif</l>
+<c>        *输出图片</c>
+<l>        set_grayval (H_, i, j, h)</l>
+<l>        set_grayval (S_, i, j, s)</l>
+<l>        set_grayval (V_, i, j, v)</l>
+<l>        compose3 (H_, S_, V_, HSVSampleImage)</l>
+<l>    endfor</l>
+<l>endfor</l>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>

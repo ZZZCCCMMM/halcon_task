@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>*全局阈值</c>
+<l>read_image (Image, 'D:/desk/5d53c57429d6f1e27d257dcd7c8b61d.jpg')</l>
+<l>gauss_filter (Image, ImageGauss, 11)</l>
+<l>rgb1_to_gray (ImageGauss, GrayImage)</l>
+<l>threshold (GrayImage, Regions, 0, 100)</l>
+<l>connection (Regions, ConnectedRegions)</l>
+<l>shape_trans (ConnectedRegions, RegionTrans, 'rectangle2')</l>
+<c>*动态阈值</c>
+<l>auto_threshold (GrayImage, auto_Regions, 1.5)</l>
+<l>select_shape (auto_Regions, SelectedRegions, 'area', 'and', 0, 5452.87)</l>
+<l>union1 (SelectedRegions, auto_Region)</l>
+<l>connection (auto_Region, auto_Connected)</l>
+<l>shape_trans (auto_Connected, auto_Trans, 'rectangle2')</l>
+<c></c>
+<l>binary_threshold (  Image, binary_Region,  'smooth_histo', 'dark', UsedThreshold)</l>
+<l>connection (binary_Region, binary_ConnectedRegions)</l>
+<l>shape_trans (binary_ConnectedRegions, binary_RegionTrans, 'rectangle2')</l>
+<c></c>
+<c>*局部阈值</c>
+<l>emphasize (GrayImage, ImageEmphasize, 8, 8, 15)</l>
+<l>mean_image (ImageEmphasize, ImageMean, 45, 45)</l>
+<l>dyn_threshold (ImageEmphasize, ImageMean, RegionDynThresh, 6, 'not_equal')</l>
+<l>opening_circle (RegionDynThresh, dyn_RegionOpening, 7)</l>
+<l>connection (dyn_RegionOpening, dyn_ConnectedRegions)</l>
+<l>shape_trans (dyn_ConnectedRegions, dyn_RegionTrans, 'rectangle2')</l>
+<c></c>
+<l>var_threshold (ImageGauss, Region, 20, 20, 0.4, 15, 'not_equal')</l>
+<l>connection (Region, var_Connected)</l>
+<l>select_shape (var_Connected, var_Selected, 'roundness', 'and', 0.70887, 0.92144)</l>
+<l>shape_trans (var_Selected, var_Regions, 'rectangle2')</l>
+<c></c>
+<c>*区域生长</c>
+<l>regiongrowing (ImageGauss, growing_Regions, 1, 1, 3, 1000)</l>
+<l>difference (Image, growing_Regions, RegionDifference)</l>
+<l>connection (RegionDifference, growing_Connected)</l>
+<l>shape_trans (growing_Connected, growing_Trans, 'rectangle2')</l>
+<c></c>
+<c>*分水岭</c>
+<l>watersheds (ImageEmphasize, Basins, Watersheds)</l>
+<l>select_shape (Basins, waterSelected, ['roundness','area'], 'and', [0.7054,364.92], [1,732.65])</l>
+<l>shape_trans (waterSelected, waterRegions, 'rectangle2')</l>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
