@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="23.05.0.0">
+<procedure name="main">
+<interface/>
+<body>
+<c>* Add a rotation to a homogeneous 2D transformation matrix</c>
+<c>* </c>
+<l>dev_close_window ()</l>
+<l>gen_image_gray_ramp (Gray, 0, 0, 128, 8, 8, 16, 16)</l>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowID)</l>
+<l>Row := 8</l>
+<l>Col := 8</l>
+<l>set_grayval (Gray, Row, Col, 255)</l>
+<l>dev_display (Gray)</l>
+<l>for phi := 0 to 360 by 6</l>
+<l>    hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>    hom_mat2d_rotate (HomMat2DIdentity, rad(phi), Row + 0.5, Col + 0.5, HomMat2DRotate)</l>
+<c>    * Apply an arbitrary affine transformation to an image</c>
+<l>    affine_trans_image (Gray, ImageRotate, HomMat2DRotate, 'constant', 'false')</l>
+<l>endfor</l>
+<c></c>
+<l>stop ()</l>
+<c></c>
+<c>* Add a translation to a homogeneous 2D transformation matrix</c>
+<c>* </c>
+<l>dev_close_window ()</l>
+<l>gen_image_gray_ramp (Gray, 0, 0, 128, 8, 8, 32, 32)</l>
+<l>dev_open_window (0, 0, 512, 512, 'black', WindowID)</l>
+<l>Row := 2</l>
+<l>Col := 2</l>
+<l>set_grayval (Gray, Row, Col, 255)</l>
+<l>dev_display (Gray)</l>
+<l>for Trans := 0 to 29 by 1</l>
+<l>    hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>    hom_mat2d_translate (HomMat2DIdentity, Trans, Trans, HomMat2DTranslate)</l>
+<c>    * Apply an arbitrary affine transformation to image.</c>
+<l>    affine_trans_image (Gray, ImageRotate, HomMat2DTranslate, 'constant', 'false')</l>
+<l>endfor</l>
+<c></c>
+<l>stop ()</l>
+<c></c>
+<l>read_image (Image, 'forest_road')</l>
+<l>hom_mat2d_identity (HomMat2DIdentity)</l>
+<l>Scale := 2</l>
+<l>hom_mat2d_scale (HomMat2DIdentity, Scale, Scale, 256, 256, HomMat2DScale)</l>
+<l>affine_trans_image (Image, ImageAffineTrans, HomMat2DScale, 'nearest_neighbor', 'false')</l>
+<l>dev_display (ImageAffineTrans)</l>
+<c></c>
+<c></c>
+<l>stop ()</l>
+<c>*关闭当前显示窗口，清空屏幕</c>
+<l>*dev_close_window ()</l>
+<c>*读取测试图像</c>
+<l>read_image (Image_display, 'display.jpg')</l>
+<c>*将图像转化为灰度图像</c>
+<l>rgb1_to_gray (Image_display, GrayImage)</l>
+<c>*获取图像的尺寸</c>
+<l>get_image_size(Image_display,imageWidth, imageHeight)</l>
+<c>*新建显示窗口，适应图像尺寸</c>
+<l>dev_open_window (0, 0, imageWidth, imageHeight, 'black', WindowHandle1)</l>
+<l>dev_display (GrayImage)</l>
+<c>*初始化角点坐标</c>
+<l>XCoordCorners := []</l>
+<l>YCoordCorners := []</l>
+<c>*阈值处理，提取较暗的区域</c>
+<l>threshold(GrayImage,DarkRegion,0, 80)</l>
+<c>*分离不相连的区域</c>
+<l>connection (DarkRegion, ConnectedRegions)</l>
+<c>*选择面积最大的暗色区域，即屏幕区域</c>
+<l>select_shape_std (ConnectedRegions, displayRegion, 'max_area', 70)</l>
+<c>*裁剪屏幕区域</c>
+<l>reduce_domain (GrayImage, displayRegion, displayImage)</l>
+<c>*创建边缘轮廓</c>
+<l>gen_contour_region_xld (displayRegion, Contours, 'border')</l>
+<c>*将轮廓分割为边</c>
+<l>segment_contours_xld (Contours, ContoursSplit, 'lines', 5, 4, 2)</l>
+<c>*获取边的数量</c>
+<l>count_obj (ContoursSplit, Number)</l>
+<c>*存储每条边的起点位置</c>
+<l>for index:=1 to Number by 1</l>
+<l>   select_obj(ContoursSplit, ObjectCurrent, index)</l>
+<c>   *拟合每条边</c>
+<l>   fit_line_contour_xld (ObjectCurrent, 'tukey', -1, 0, 5, 2, RowBegin, ColBegin, RowEnd, ColEnd, Nr, Nc, Dist)</l>
+<c>   *存储每条边的顶点x坐标</c>
+<l>   tuple_concat (XCoordCorners, RowBegin, XCoordCorners)</l>
+<c>   *存储每条边的顶点y坐标</c>
+<l>   tuple_concat (YCoordCorners, ColBegin, YCoordCorners)</l>
+<l>endfor</l>
+<c>* 投影变换给四个特征点与校正后的坐标建立关联</c>
+<l>XOff:= 100</l>
+<l>YOff:= 100*imageHeight/imageWidth</l>
+<l>hom_vector_to_proj_hom_mat2d (XCoordCorners, YCoordCorners, [1,1,1,1], [YOff,YOff,imageHeight-YOff,imageHeight-YOff], [XOff,imageWidth-XOff,imageWidth-XOff,XOff], [1,1,1,1], 'normalized_dlt', HomMat2D)</l>
+<c>*投影变换</c>
+<l>projective_trans_image (Image_display, Image_rectified, HomMat2D, 'bilinear', 'false', 'false')</l>
+<c>* 显示校正结果</c>
+<l>dev_display (Image_rectified)</l>
+<l>stop ()</l>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c></c>
+<c>*参考https://blog.csdn.net/wsp_1138886114/article/details/131888684</c>
+<c>*读图，灰度</c>
+<l>read_image (Image, 'D:/desk/354124edf73e4e00238a64ccf89ab98.jpg')</l>
+<l>get_image_size (Image, Width, Height)</l>
+<l>rgb1_to_gray (Image, GrayImage)</l>
+<c>*取每个点的y（rs），x（cs）值</c>
+<l>rs:=[]</l>
+<l>for index:=0 to Width-1 by 1</l>
+<l>    tuple_gen_const(Height,index,Newtuple) </l>
+<l>    rs:=[rs,Newtuple]</l>
+<l>endfor </l>
+<l>cs:=[]</l>
+<l>for index:=0 to Width-1 by 1</l>
+<l>	tuple_gen_sequence(0,Height-1,1,Sequence)	</l>
+<l>	cs:=[cs,Sequence]	</l>
+<l>endfor</l>
+<c>*取灰度值存入val</c>
+<l>get_grayval(GrayImage,cs,rs,val)</l>
+<c>*第三行是由 1 组成的向量</c>
+<l>tuple_gen_const (|cs|, 1, one)</l>
+<c>*第一行包含 a 中所有点的 x 坐标</c>
+<l>tuple_concat (cs, rs, Concat)</l>
+<c>*第二行包含 a 中所有点的 y 坐标</c>
+<l>flag:=0</l>
+<c>*二维齐次坐标矩阵</c>
+<l>if (flag!=0 and flag!=1 and flag!=2)</l>
+<l>    create_matrix (2, 48705, Concat, x_y_Mat)</l>
+<l>else</l>
+<l>    tuple_concat (Concat, one, Concat)</l>
+<l>    create_matrix (3, 48705, Concat, x_y_Mat)  </l>
+<l>endif</l>
+<c>*齐次变换矩阵，0（平移），1（缩放），2（旋转），3（x轴镜像），其他（y轴镜像）</c>
+<c>*由于halcon的图像坐标轴不同于halcon，是在左上角的，得通过坐标变换换到第一象限才能有效果</c>
+<l>if(flag==0)</l>
+<c>    *x轴平移像素值</c>
+<l>    tx:=100</l>
+<c>    *y轴平移像素值</c>
+<l>    ty:=300</l>
+<l>    create_matrix (2, 3, [1,0,tx,0,1,ty], trans_Mat)</l>
+<l>elseif (flag==1)</l>
+<c>    *x轴平移因子</c>
+<l>    px:=0</l>
+<c>    *y轴平移因子</c>
+<l>    py:=0</l>
+<c>    *x轴缩放因子</c>
+<l>    sx:=1.2</l>
+<c>    *y轴缩放因子</c>
+<l>    sy:=1.2</l>
+<l>    create_matrix (3,3, [sx, 0 , px*(1 - sx),0 , sy, py*(1 - sy),0 , 0 , 1],trans_Mat)</l>
+<l>elseif (flag==2)</l>
+<c>    *旋转中心</c>
+<l>    px:=127</l>
+<l>    py:=85</l>
+<c>    *旋转角度</c>
+<l>    beta:=rad(-45)</l>
+<l>    create_matrix (3,3,[cos(beta), -sin(beta), px*(1-cos(beta))+py*sin(beta),sin(beta),cos(beta), py*(1-cos(beta))-px*sin(beta),0, 0, 1],trans_Mat)</l>
+<c>    *简化版</c>
+<l>*   beta:=rad(10)</l>
+<l>*   create_matrix (3,3,[cos(beta),sin(beta), 0,-sin(beta),cos(beta),0,0, 0, 1],trans_Mat)</l>
+<l>elseif (flag==3)</l>
+<l>*     create_matrix (3,3,[1,0,0,0,-1,0,1,0,1],trans_Mat)</l>
+<l>    create_matrix (2,2,[-1,0,0,1],trans_Mat)</l>
+<l>else</l>
+<l>*     create_matrix (3,3,[-1,0,0,0,1,0,0,1,1],trans_Mat)</l>
+<l>    create_matrix (2,2,[1,0,0,-1],trans_Mat)</l>
+<l>endif</l>
+<c></c>
+<c>*矩阵相乘</c>
+<l>mult_matrix (trans_Mat, x_y_Mat , 'AB', Mat_trans)</l>
+<c>*取x，y</c>
+<l>get_full_matrix (Mat_trans, Mat_Values)</l>
+<l>x:=Mat_Values[0:48704]</l>
+<l>y:=Mat_Values[48705:97409]</l>
+<c>*四舍五入坐标值</c>
+<l>tuple_round (x, x)</l>
+<l>tuple_round (y, y)</l>
+<c></c>
+<c>*底图</c>
+<l>gen_image_const (white, 'int2', 1000, 1000)</l>
+<c>*删除负数，sgn符号函数返回-1，</c>
+<l>tuple_sgn (x, x_Sgn)</l>
+<l>tuple_sgn (y, y_Sgn)</l>
+<l>tuple_find (x_Sgn, -1, x_Indices)</l>
+<l>tuple_find (y_Sgn, -1, y_Indices)</l>
+<l>tuple_concat (x_Indices, y_Indices, x_yInd)</l>
+<c>*删除x和y值中的重复坐标值</c>
+<l>tuple_uniq (x_yInd, Uniq)</l>
+<c>*移除对应索引的x，y，灰度值</c>
+<l>tuple_remove (x, Uniq, x)</l>
+<l>tuple_remove (y, Uniq, y)</l>
+<l>tuple_remove (val, Uniq, val)</l>
+<c>*生成底图</c>
+<l>set_grayval (white, x, y, val)</l>
+<c></c>
+<c></c>
+<c></c>
+</body>
+<docu id="main">
+<parameters/>
+</docu>
+</procedure>
+</hdevelop>
